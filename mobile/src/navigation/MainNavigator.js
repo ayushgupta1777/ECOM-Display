@@ -19,6 +19,9 @@ import PaymentScreen from '../screens/payment/PaymentScreen';
 import OrderSuccessScreen from '../screens/orders/OrderSuccessScreen';
 import PaymentGatewayScreen from '../screens/payment/PaymentGatewayScreen';
 
+import CategoryListScreen from '../screens/product/CategoryListScreen';
+import SubcategoryListScreen from '../screens/product/SubcategoryListScreen';
+
 // Search and Notifications Screens
 import SearchScreen from '../screens/home/SearchScreen';
 import NotificationsScreen from '../screens/home/NotificationsScreen';
@@ -65,6 +68,10 @@ const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }} style={{ flex: 1, backgroundColor: '#fff' }}>
     
     <Stack.Screen name="HomeMain" component={HomeScreen} />
+
+    <Stack.Screen name='CategoryList' component={CategoryListScreen} />
+    <Stack.Screen name='SubcategoryList' component={SubcategoryListScreen} />
+
     <Stack.Screen name="ProductList" component={ProductListScreen} />
     <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
     <Stack.Screen name="ShareProduct" component={ShareProductScreen} />

@@ -362,40 +362,49 @@ const [bannerIndex, setBannerIndex] = useState(0);
           </View>
         </View>
 
-        {/* CATEGORY GRAPHICS - Like Pyrite Fashion */}
-<View style={styles.categoriesSection}>
-  {categories.map((item) => (
-    <TouchableOpacity
-      key={item.id}
-      style={styles.categoryGraphic}
-      onPress={() => navigation.navigate('ProductList', { category: item.slug })}
-      activeOpacity={0.8}
-    >
-      <Image 
-        source={{ uri: item.image }}  // ✅ FIXED - wrap URL in { uri: ... }
-        style={styles.categoryImage}
-        resizeMode="cover"
-      />
-      
-      {/* Overlay Text */}
-      <View style={styles.categoryOverlay}>
-        <Text style={styles.categoryName}>{item.name}</Text>
-        <Text style={styles.categorySubtext}>Exclusive Collections</Text>
-        <TouchableOpacity style={styles.exploreBtn}>
-          <Text style={styles.exploreBtnText}>Explore More</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Play Button for Videos (Optional) */}
-      {item.hasVideo && (
-        <View style={styles.playButton}>
-          <Icon name="play" size={32} color="#fff" />
-        </View>
-      )}
-    </TouchableOpacity>
-  ))}
-</View>
+         <View style={styles.categoriesSection}>
+            {categories.map((item) => (
+              <TouchableOpacity
+                key={item._id}
+                style={styles.categoryGraphic}
+                onPress={() => navigation.navigate('SubcategoryList', { 
+                  categoryId: item._id, 
+                  categoryName: item.name 
+                })}
+                activeOpacity={0.8}
+              >
+                {item.image ? (
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.categoryImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.categoryImage, styles.categoryImagePlaceholder]}>
+                    <Icon name="image-outline" size={32} color="#9CA3AF" />
+                  </View>
+                )}
 
+                {/* Overlay Text */}
+                <View style={styles.categoryOverlay}>
+                  <Text style={styles.categoryName}>{item.name}</Text>
+                  <Text style={styles.categorySubtext}>Exclusive Collections</Text>
+                  <TouchableOpacity style={styles.exploreBtn}>
+                    <Text style={styles.exploreBtnText}>Explore More</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Play Button for Videos (Optional) */}
+                {item.hasVideo && (
+                  <View style={styles.playButton}>
+                    <Icon name="play" size={32} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          
         {/* FEATURED PRODUCTS */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
