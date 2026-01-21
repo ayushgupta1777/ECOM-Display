@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchCart, updateCartItem, removeFromCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
+import CustomHeader from '../../components/CustomHeader';
+
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -188,6 +190,12 @@ const CartScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <CustomHeader 
+        title="Cart"
+        showBack={true}
+        // showCart={true}
+        // cartCount={totalItems}
+      />
       <FlatList 
         data={items} 
         renderItem={renderItem} 

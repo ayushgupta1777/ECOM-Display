@@ -4,7 +4,6 @@ import {
   StyleSheet, Alert, ActivityIndicator, TextInput, Modal
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-// import * as launchImageLibrary from 'expo-image-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import api from '../../services/api';
@@ -15,6 +14,7 @@ const CategoryManagementScreen = ({ navigation }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -39,24 +39,32 @@ const CategoryManagementScreen = ({ navigation }) => {
     }
   };
 
-const pickImage = () => {
-  const options = {
-    mediaType: 'photo',
-    quality: 0.8,
-    maxWidth: 1920,
-    maxHeight: 1080,
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      slug: '',
+      description: '',
+      image: ''
+    });
   };
 
-  launchImageLibrary(options, (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled');
-    } else if (response.error || response.errorCode) {
-      Alert.alert('Error', response.error || response.errorMessage || 'Failed to pick image');
-    } else if (response.assets && response.assets.length > 0) {
-      uploadImage(response.assets[0]);
+  const pickImage = async () => {
+    const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permission is required');
+      return;
     }
-  });
-};
+
+    const result = await launchImageLibrary.launchImageLibraryAsync({
+      mediaTypes: launchImageLibrary.MediaTypeOptions.Images,
+      quality: 0.8
+    });
+
+    if (!result.canceled) {
+      uploadImage(result.assets[0]);
+    }
+  };
 
   const uploadImage = async (image) => {
     setIsUploading(true);
@@ -80,6 +88,7 @@ const pickImage = () => {
       Alert.alert('Success', 'Image uploaded!');
     } catch (error) {
       Alert.alert('Error', 'Failed to upload image');
+      console.error(error);
     } finally {
       setIsUploading(false);
     }
@@ -93,16 +102,17 @@ const pickImage = () => {
   };
 
   const handleNameChange = (text) => {
+    // Only auto-update slug if we're creating a new category (not editing)
     setFormData({
       ...formData,
       name: text,
-      slug: generateSlug(text)
+      slug: !editingCategory ? generateSlug(text) : formData.slug
     });
   };
 
   const openAddModal = () => {
     setEditingCategory(null);
-    setFormData({ name: '', slug: '', description: '', image: '' });
+    resetForm();
     setShowModal(true);
   };
 
@@ -123,26 +133,46 @@ const pickImage = () => {
       return;
     }
 
+    if (!formData.slug.trim()) {
+      Alert.alert('Error', 'Slug is required');
+      return;
+    }
+
+    setIsSaving(true);
     try {
+      const payload = {
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description,
+        image: formData.image
+      };
+
       if (editingCategory) {
-        await api.put(`/categories/${editingCategory._id}`, formData);
-        Alert.alert('Success', 'Category updated successfully');
+        // Update existing category
+        await api.put(`/categories/${editingCategory._id}`, payload);
+        Alert.alert('Success', 'Category updated successfully!');
       } else {
-        await api.post('/categories', formData);
-        Alert.alert('Success', 'Category created successfully');
+        // Create new category
+        await api.post('/categories', payload);
+        Alert.alert('Success', 'Category created successfully!');
       }
       
       setShowModal(false);
+      resetForm();
       fetchCategories();
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to save category');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to save category';
+      Alert.alert('Error', errorMsg);
+      console.error('Save error:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handleDelete = (categoryId) => {
+  const handleDelete = (categoryId, categoryName) => {
     Alert.alert(
       'Delete Category',
-      'Are you sure? This action cannot be undone.',
+      `Are you sure you want to delete "${categoryName}"? This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -151,10 +181,12 @@ const pickImage = () => {
           onPress: async () => {
             try {
               await api.delete(`/categories/${categoryId}`);
-              Alert.alert('Success', 'Category deleted');
+              Alert.alert('Success', 'Category deleted successfully');
               fetchCategories();
             } catch (error) {
-              Alert.alert('Error', error.response?.data?.message || 'Failed to delete category');
+              const errorMsg = error.response?.data?.message || error.message || 'Failed to delete category';
+              Alert.alert('Error', errorMsg);
+              console.error('Delete error:', error);
             }
           }
         }
@@ -210,12 +242,14 @@ const pickImage = () => {
                 <TouchableOpacity
                   style={styles.actionBtn}
                   onPress={() => openEditModal(category)}
+                  activeOpacity={0.7}
                 >
                   <Icon name="create-outline" size={20} color="#4F46E5" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => handleDelete(category._id)}
+                  onPress={() => handleDelete(category._id, category.name)}
+                  activeOpacity={0.7}
                 >
                   <Icon name="trash-outline" size={20} color="#EF4444" />
                 </TouchableOpacity>
@@ -226,7 +260,7 @@ const pickImage = () => {
       </ScrollView>
 
       {/* Add/Edit Modal */}
-      <Modal visible={showModal} animationType="slide" transparent>
+      <Modal visible={showModal} animationType="slide" transparent onRequestClose={() => setShowModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -238,7 +272,7 @@ const pickImage = () => {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody}>
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={true}>
               {/* Image Upload */}
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Category Image</Text>
@@ -246,6 +280,7 @@ const pickImage = () => {
                   style={styles.imageUploadBox}
                   onPress={pickImage}
                   disabled={isUploading}
+                  activeOpacity={0.7}
                 >
                   {isUploading ? (
                     <ActivityIndicator color="#4F46E5" />
@@ -268,17 +303,19 @@ const pickImage = () => {
                   placeholder="Enter category name"
                   value={formData.name}
                   onChangeText={handleNameChange}
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
 
               {/* Slug */}
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Slug</Text>
+                <Text style={styles.label}>Slug *</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="auto-generated"
+                  placeholder="auto-generated-slug"
                   value={formData.slug}
                   onChangeText={(text) => setFormData({ ...formData, slug: text })}
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
 
@@ -292,21 +329,35 @@ const pickImage = () => {
                   onChangeText={(text) => setFormData({ ...formData, description: text })}
                   multiline
                   numberOfLines={3}
+                  placeholderTextColor="#9CA3AF"
                 />
               </View>
 
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSubmit}>
-                <Icon name="checkmark" size={20} color="#fff" />
-                <Text style={styles.saveBtnText}>
-                  {editingCategory ? 'Update' : 'Create'} Category
-                </Text>
+              <TouchableOpacity
+                style={[styles.saveBtn, isSaving && styles.saveBtnDisabled]}
+                onPress={handleSubmit}
+                disabled={isSaving}
+                activeOpacity={0.8}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Icon name="checkmark" size={20} color="#fff" />
+                    <Text style={styles.saveBtnText}>
+                      {editingCategory ? 'Update' : 'Create'} Category
+                    </Text>
+                  </>
+                )}
               </TouchableOpacity>
+
+              <View style={{ height: 30 }} />
             </ScrollView>
           </View>
         </View>
       </Modal>
 
-      <TouchableOpacity style={styles.fab} onPress={openAddModal}>
+      <TouchableOpacity style={styles.fab} onPress={openAddModal} activeOpacity={0.8}>
         <Icon name="add" size={28} color="#fff" />
       </TouchableOpacity>
     </View>
@@ -476,29 +527,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
-    borderRadius:8,
-marginTop: 8
-},
-saveBtnText: {
-fontSize: 16,
-fontWeight: '700',
-color: '#fff'
-},
-fab: {
-position: 'absolute',
-right: 20,
-bottom: 20,
-backgroundColor: '#4F46E5',
-width: 56,
-height: 56,
-borderRadius: 28,
-justifyContent: 'center',
-alignItems: 'center',
-shadowColor: '#000',
-shadowOffset: { width: 0, height: 4 },
-shadowOpacity: 0.3,
-shadowRadius: 8,
-elevation: 8
-}
+    borderRadius: 8,
+    marginTop: 8
+  },
+  saveBtnDisabled: {
+    opacity: 0.6
+  },
+  saveBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff'
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#4F46E5',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8
+  }
 });
+
 export default CategoryManagementScreen;

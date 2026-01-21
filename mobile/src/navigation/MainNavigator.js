@@ -71,7 +71,6 @@ const HomeStack = () => (
 
     <Stack.Screen name="Search" component={SearchScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
-    <Stack.Screen name="Cart" component={CartScreen} />
   </Stack.Navigator>
 );
 
@@ -99,19 +98,41 @@ const HomeStack = () => (
 // );
 
 // CART STACK - ADD ALL REQUIRED SCREENS
+// CART STACK - This is the ONLY cart implementation
 const CartStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="CartMain" component={CartScreen} />
-    <Stack.Screen name="Checkout" component={CheckoutScreen} />
-    <Stack.Screen name="Payment" component={PaymentScreen} />
-    <Stack.Screen name="PaymentGateway" component={PaymentGatewayScreen} />
-    <Stack.Screen name="OrderSuccess" component={OrderSuccessScreen} />
+  <Stack.Navigator screenOptions={{ headerShown: false }}  >
+    
+    <Stack.Screen 
+      name="CartMain" 
+      component={CartScreen}
+      options={{ title: 'Cart' }}
+    />
+    <Stack.Screen 
+      name="Checkout" 
+      component={CheckoutScreen}
+      options={{ title: 'Checkout' }}
+    />
+    <Stack.Screen 
+      name="Payment" 
+      component={PaymentScreen}
+      options={{ gestureEnabled: false }}
+    />
+    <Stack.Screen 
+      name="PaymentGateway" 
+      component={PaymentGatewayScreen}
+      options={{ gestureEnabled: false }}
+    />
+    <Stack.Screen 
+      name="OrderSuccess" 
+      component={OrderSuccessScreen}
+      options={{ gestureEnabled: false }}
+    />
   </Stack.Navigator>
 );
 
 // RESELLER HUB STACK (Core Feature - Most Important)
 const ResellerStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
    <Stack.Screen name="ResellerHubMain" component={ResellerHubScreen} />
       <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} />
     <Stack.Screen name="ShareProduct" component={ShareProductScreen} />

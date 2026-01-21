@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
-  Image, StyleSheet, Alert, ActivityIndicator
+  Image, StyleSheet, Alert, ActivityIndicator, Modal, FlatList
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-// import * as launchImageLibrary from 'expo-image-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import api from '../../services/api';
@@ -13,6 +12,7 @@ const AddProductScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -37,25 +37,37 @@ const AddProductScreen = ({ navigation }) => {
     }
   };
 
-const pickImages = () => {
-  const options = {
-    mediaType: 'photo',
-    quality: 0.8,
-    maxWidth: 1920,
-    maxHeight: 1080,
-    selectionLimit: 0, // 0 = unlimited, allows multiple selection
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      price: '',
+      mrp: '',
+      stock: '',
+      images: []
+    });
   };
 
-  launchImageLibrary(options, (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled');
-    } else if (response.error || response.errorCode) {
-      Alert.alert('Error', response.error || response.errorMessage || 'Failed to pick images');
-    } else if (response.assets && response.assets.length > 0) {
-      uploadImages(response.assets);
+  const pickImages = async () => {
+    const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Camera roll permission is required');
+      return;
     }
-  });
-};
+
+    const result = await launchImageLibrary.launchImageLibraryAsync({
+      mediaTypes: launchImageLibrary.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8
+    });
+
+    if (!result.canceled) {
+      uploadImages(result.assets);
+    }
+  };
 
   const uploadImages = async (images) => {
     setIsUploading(true);
@@ -63,14 +75,14 @@ const pickImages = () => {
 
     try {
       for (const image of images) {
-        const formData = new FormData();
-        formData.append('image', {
+        const formDataUpload = new FormData();
+        formDataUpload.append('image', {
           uri: image.uri,
           type: 'image/jpeg',
           name: 'upload.jpg'
         });
 
-        const response = await api.post('/upload/image', formData, {
+        const response = await api.post('/upload/image', formDataUpload, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -82,7 +94,7 @@ const pickImages = () => {
         images: [...prev.images, ...uploadedUrls]
       }));
       
-      Alert.alert('Success', `${uploadedUrls.length} images uploaded!`);
+      Alert.alert('Success', `${uploadedUrls.length} image(s) uploaded!`);
     } catch (error) {
       Alert.alert('Error', 'Failed to upload images');
       console.error(error);
@@ -156,7 +168,14 @@ const pickImages = () => {
 
       if (response.data.success) {
         Alert.alert('Success', 'Product added successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
+          {
+            text: 'Add Another',
+            onPress: () => resetForm() // Clear form for next product
+          },
+          {
+            text: 'Go Back',
+            onPress: () => navigation.goBack()
+          }
         ]);
       }
     } catch (error) {
@@ -166,6 +185,65 @@ const pickImages = () => {
     }
   };
 
+  const selectedCategory = categories.find(c => c._id === formData.category);
+
+  // Category Modal Component
+  const CategoryModal = () => (
+    <Modal
+      visible={showCategoryModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowCategoryModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          {/* Modal Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+              <Icon name="close" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Category List */}
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.categoryItem,
+                  formData.category === item._id && styles.categoryItemSelected
+                ]}
+                onPress={() => {
+                  setFormData({ ...formData, category: item._id });
+                  setShowCategoryModal(false);
+                }}
+              >
+                <View style={styles.categoryItemContent}>
+                  {item.image && (
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.categoryItemImage}
+                    />
+                  )}
+                  <View style={styles.categoryItemText}>
+                    <Text style={styles.categoryItemName}>{item.name}</Text>
+                    <Text style={styles.categoryItemSlug}>{item.slug}</Text>
+                  </View>
+                </View>
+                {formData.category === item._id && (
+                  <Icon name="checkmark-circle" size={24} color="#4F46E5" />
+                )}
+              </TouchableOpacity>
+            )}
+            scrollEnabled={true}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -173,13 +251,20 @@ const pickImages = () => {
           <Icon name="chevron-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add New Product</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={resetForm}>
+          <Icon name="refresh" size={24} color="#4F46E5" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={true}>
         {/* Product Images */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Product Images *</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Product Images *</Text>
+            {formData.images.length > 0 && (
+              <Text style={styles.sectionBadge}>{formData.images.length}/5</Text>
+            )}
+          </View>
           <Text style={styles.sectionSubtitle}>Upload up to 5 images</Text>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -206,7 +291,7 @@ const pickImages = () => {
                 ) : (
                   <>
                     <Icon name="cloud-upload-outline" size={32} color="#9CA3AF" />
-                    <Text style={styles.uploadText}>Upload Images</Text>
+                    <Text style={styles.uploadText}>Upload</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -225,6 +310,7 @@ const pickImages = () => {
               placeholder="Enter product title"
               value={formData.title}
               onChangeText={(text) => setFormData({ ...formData, title: text })}
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 
@@ -237,33 +323,24 @@ const pickImages = () => {
               onChangeText={(text) => setFormData({ ...formData, description: text })}
               multiline
               numberOfLines={4}
+              placeholderTextColor="#9CA3AF"
             />
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Category *</Text>
-            <View style={styles.pickerWrapper}>
-              <TouchableOpacity
-                style={styles.pickerButton}
-                onPress={() => {
-                  Alert.alert(
-                    'Select Category',
-                    '',
-                    categories.map(cat => ({
-                      text: cat.name,
-                      onPress: () => setFormData({ ...formData, category: cat._id })
-                    }))
-                  );
-                }}
-              >
-                <Text style={styles.pickerText}>
-                  {formData.category
-                    ? categories.find(c => c._id === formData.category)?.name
-                    : 'Select Category'}
+            <Text style={styles.label}>Category * ({categories.length})</Text>
+            <TouchableOpacity
+              style={styles.pickerWrapper}
+              onPress={() => setShowCategoryModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.pickerButton}>
+                <Text style={[styles.pickerText, !formData.category && { color: '#9CA3AF' }]}>
+                  {selectedCategory ? selectedCategory.name : 'Select Category'}
                 </Text>
                 <Icon name="chevron-down" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -279,7 +356,8 @@ const pickImages = () => {
                 placeholder="₹0"
                 value={formData.mrp}
                 onChangeText={(text) => setFormData({ ...formData, mrp: text })}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                placeholderTextColor="#9CA3AF"
               />
             </View>
 
@@ -292,7 +370,8 @@ const pickImages = () => {
                 placeholder="₹0"
                 value={formData.price}
                 onChangeText={(text) => setFormData({ ...formData, price: text })}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                placeholderTextColor="#9CA3AF"
               />
             </View>
           </View>
@@ -318,7 +397,8 @@ const pickImages = () => {
               placeholder="0"
               value={formData.stock}
               onChangeText={(text) => setFormData({ ...formData, stock: text })}
-              keyboardType="numeric"
+              keyboardType="number-pad"
+              placeholderTextColor="#9CA3AF"
             />
           </View>
         </View>
@@ -329,9 +409,10 @@ const pickImages = () => {
       {/* Submit Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.submitBtn}
+          style={[styles.submitBtn, (isLoading || isUploading) && styles.submitBtnDisabled]}
           onPress={handleSubmit}
           disabled={isLoading || isUploading}
+          activeOpacity={0.8}
         >
           {isLoading ? (
             <ActivityIndicator color="#fff" />
@@ -343,6 +424,9 @@ const pickImages = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Category Modal */}
+      <CategoryModal />
     </View>
   );
 };
@@ -364,9 +448,26 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: '#fff',
     marginTop: 12,
-    padding: 20
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6'
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4
+  },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  sectionBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12
+  },
   sectionSubtitle: { fontSize: 13, color: '#6B7280', marginBottom: 16 },
   imagePreview: {
     width: 120,
@@ -385,7 +486,12 @@ const styles = StyleSheet.create({
     top: -8,
     right: -8,
     backgroundColor: '#fff',
-    borderRadius: 12
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3
   },
   uploadBox: {
     width: 120,
@@ -428,7 +534,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    borderRadius: 8
+    borderRadius: 8,
+    overflow: 'hidden'
   },
   pickerButton: {
     flexDirection: 'row',
@@ -450,7 +557,8 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#D1FAE5',
     padding: 12,
-    borderRadius: 8
+    borderRadius: 8,
+    marginTop: 8
   },
   discountText: {
     fontSize: 14,
@@ -472,10 +580,76 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8
   },
+  submitBtnDisabled: {
+    opacity: 0.6
+  },
   submitBtnText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#fff'
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end'
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%'
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB'
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827'
+  },
+  categoryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6'
+  },
+  categoryItemSelected: {
+    backgroundColor: '#F0F4FF'
+  },
+  categoryItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1
+  },
+  categoryItemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#F3F4F6'
+  },
+  categoryItemText: {
+    flex: 1
+  },
+  categoryItemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827'
+  },
+  categoryItemSlug: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2
   }
 });
 

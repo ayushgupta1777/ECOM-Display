@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  Image, StyleSheet, Dimensions, FlatList, TextInput
+  View, Text, ScrollView, TouchableOpacity, Image, StyleSheet,
+  Dimensions, FlatList, Animated, StatusBar
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -21,7 +21,39 @@ const [bannerIndex, setBannerIndex] = useState(0);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
    const [unreadCount, setUnreadCount] = useState(0);
+
+    const [drawerVisible, setDrawerVisible] = useState(false);
+
   const scrollRef = useRef(null);
+
+  const drawerAnim = useRef(new Animated.Value(-300)).current;
+
+  // Animation values
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+
+  // Fetch data on mount
+  useEffect(() => {
+    dispatch(fetchProducts());
+    fetchBanners();
+    fetchCategories();
+    fetchNotificationCount();
+    // Start animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Fetch data on mount
    useEffect(() => {
@@ -76,57 +108,217 @@ const [bannerIndex, setBannerIndex] = useState(0);
 
 
 
+  const menuItems = [
+    { id: 'home', name: 'Home', icon: 'home-outline', route: 'Home' },
+    { id: 'orders', name: 'My Orders', icon: 'bag-handle-outline', route: 'Orders' },
+    { id: 'wishlist', name: 'Wishlist', icon: 'heart-outline', route: 'Wishlist' },
+    { id: 'wallet', name: 'Wallet', icon: 'wallet-outline', route: 'Wallet' },
+    { id: 'reselling', name: 'Reselling', icon: 'storefront-outline', route: 'Reselling' },
+    { id: 'profile', name: 'Profile', icon: 'person-outline', route: 'Profile' },
+    { id: 'settings', name: 'Settings', icon: 'settings-outline', route: 'Settings' },
+    { id: 'support', name: 'Help & Support', icon: 'help-circle-outline', route: 'Support' },
+  ];
+
+  const toggleDrawer = () => {
+    const toValue = drawerVisible ? -300 : 0;
+    setDrawerVisible(!drawerVisible);
+
+    Animated.timing(drawerAnim, {
+      toValue,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeDrawer = () => {
+    Animated.timing(drawerAnim, {
+      toValue: -300,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setDrawerVisible(false));
+  };
+
+  const handleCategoryPress = (category) => {
+    closeDrawer();
+    navigation.navigate('ProductList', { category });
+  };
+
+  const handleMenuPress = (route) => {
+    closeDrawer();
+    navigation.navigate(route);
+  };
+
+
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
     <View style={styles.container}>
       {/* TOP STRIP - Like Pyrite Fashion */}
-      <View style={styles.topStrip}>
-        {/* Menu Icon */}
-        {/* <TouchableOpacity 
-          style={styles.menuBtn}
-          onPress={() => navigation.openDrawer()}
+
+        {/* SIDE DRAWER */}
+        {drawerVisible && (
+          <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPress={closeDrawer}
+          />
+        )}
+
+        {/* SIDE DRAWER */}
+        <Animated.View
+          style={[
+            styles.drawer,
+            { transform: [{ translateX: drawerAnim }] }
+          ]}
         >
-          <Icon name="menu" size={24} color="#333" />
-        </TouchableOpacity> */}
 
-        {/* Company Name */}
-        <Text style={styles.companyName}>DSR Fashion</Text>
-
-        {/* Right Icons */}
-        <View style={styles.topRightIcons}>
-          {/* Search */}
-          <TouchableOpacity 
-            style={styles.topIcon}
-            onPress={() => navigation.navigate('Search')}
-          >
-            <Icon name="search" size={22} color="#333" />
-          </TouchableOpacity>
-
-          {/* Notifications */}
-   <TouchableOpacity 
-            style={styles.topIcon}
-            onPress={() => navigation.navigate('Notifications')}
-          >
-            <Icon name="notifications" size={22} color="#333" />
-            {unreadCount > 0 && (
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Drawer Header */}
+            <View style={styles.drawerHeader}>
+              <View style={styles.drawerProfileSection}>
+                <View style={styles.drawerProfileImage}>
+                  <Icon name="person" size={32} color="#fff" />
+                </View>
+                <View style={styles.drawerProfileInfo}>
+                  <Text style={styles.drawerProfileName}>
+                    {user?.name || 'Guest User'}
+                  </Text>
+                  <Text style={styles.drawerProfileEmail}>
+                    {user?.email || 'Login to continue'}
+                  </Text>
+                </View>
               </View>
-            )}
-          </TouchableOpacity>
-
-          {/* Cart */}
-          <TouchableOpacity 
-            style={styles.topIcon}
-            onPress={() => navigation.navigate('Cart')}
-          >
-            <Icon name="cart" size={22} color="#333" />
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>1</Text>
             </View>
-          </TouchableOpacity>
-        </View>
-      </View>
+
+            {/* Menu Items */}
+            <View style={styles.drawerSection}>
+              <Text style={styles.drawerSectionTitle}>MENU</Text>
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.drawerMenuItem}
+                  onPress={() => handleMenuPress(item.route)}
+                  activeOpacity={0.7}
+                >
+                  <Icon name={item.icon} size={22} color="#333" />
+                  <Text style={styles.drawerMenuText}>{item.name}</Text>
+                  <Icon name="chevron-forward" size={18} color="#999" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Categories */}
+            <View style={styles.drawerSection}>
+              <Text style={styles.drawerSectionTitle}>CATEGORIES</Text>
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={styles.drawerCategoryItem}
+                  onPress={() => handleCategoryPress(category.category)}
+                  activeOpacity={0.7}
+                >
+                  <Image
+                    source={category.image}
+                    style={styles.drawerCategoryImage}
+                  />
+                  <Text style={styles.drawerCategoryText}>{category.name}</Text>
+                  <Icon name="chevron-forward" size={18} color="#999" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Logout Button */}
+            {user && (
+              <TouchableOpacity style={styles.drawerLogoutBtn}>
+                <Icon name="log-out-outline" size={22} color="#FF4444" />
+                <Text style={styles.drawerLogoutText}>Logout</Text>
+              </TouchableOpacity>
+            )}
+
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </Animated.View>
+
+        {/* TOP STRIP - Like Pyrite Fashion */}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.topStrip}>
+
+            <View style={styles.headerLeft}>
+
+
+              {/* <View style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoText}>DSR</Text>
+            </View>
+            <View style={styles.logoTextContainer}>
+              <Text style={styles.brandName}>DSR Fashion</Text>
+              <Text style={styles.brandTagline}>Style Redefined</Text>
+            </View>
+          </View> */}
+
+              <TouchableOpacity
+                style={styles.logoContainer}
+                onPress={toggleDrawer}
+                activeOpacity={0.7}
+              >
+                <Image 
+                  source={require('../../assets/logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+                <View style={styles.logoTextContainer}>
+                  <Text style={styles.brandName}>DSR Fashion</Text>
+                  <Text style={styles.brandTagline}>Style Redefined</Text>
+                </View>
+              </TouchableOpacity>
+
+
+            </View>
+
+            {/* Right Icons */}
+            <View style={styles.topRightIcons}>
+              {/* Search */}
+              <TouchableOpacity
+                style={styles.topIcon}
+                onPress={() => navigation.navigate('Search')}
+              >
+                <Icon name="search" size={22} color="#333" />
+              </TouchableOpacity>
+
+              {/* Notifications */}
+              <TouchableOpacity
+                style={styles.topIcon}
+                onPress={() => navigation.navigate('Notifications')}
+              >
+                <Icon name="notifications" size={22} color="#333" />
+                {unreadCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Cart */}
+              <TouchableOpacity
+                style={styles.topIcon}
+                onPress={() => navigation.navigate('Cart')}
+              >
+                <Icon name="cart" size={22} color="#333" />
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>1</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* BANNER SLIDER */}
@@ -381,6 +573,197 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4
   },
+
+  
+
+
+  headerLeft: {
+    flex: 1,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#4F46E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  logoText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  logoTextContainer: {
+    justifyContent: 'center',
+  },
+    logoImage: {
+    width: 44,
+    height: 44,
+    marginRight: 12,
+  },
+  logoTextContainer: {
+    justifyContent: 'center',
+  },
+  brandName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    letterSpacing: 0.5,
+  },
+  brandTagline: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4F46E5',
+    marginTop: 2,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+
+
+
+
+
+
+
+
+
+
+
+  // Side Drawer Styles
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 999,
+  },
+  drawer: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 300,
+    backgroundColor: '#fff',
+    zIndex: 1000,
+    elevation: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  drawerHeader: {
+    backgroundColor: '#4F46E5',
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  drawerProfileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  drawerProfileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  drawerProfileInfo: {
+    flex: 1,
+  },
+  drawerProfileName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  drawerProfileEmail: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  drawerSection: {
+    paddingTop: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  drawerSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#999',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    letterSpacing: 1,
+  },
+  drawerMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  drawerMenuText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+  },
+  drawerCategoryItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  drawerCategoryImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+  },
+  drawerCategoryText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+  },
+  drawerLogoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 12,
+    gap: 16,
+  },
+  drawerLogoutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FF4444',
+  },
+
+
+
+
+
+
+
+
+
+
+
+
   menuBtn: { marginRight: 12 },
   companyName: {
     flex: 1,
