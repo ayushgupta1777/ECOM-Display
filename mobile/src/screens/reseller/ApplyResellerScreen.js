@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { applyForReseller } from '../../redux/slices/resellerSlice'; // Adjust import path
+import { applyForReseller } from '../../redux/slices/resellerSlice'; // ✅ CORRECT IMPORT
 
 export default function ApplyResellerScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -21,7 +21,10 @@ export default function ApplyResellerScreen({ navigation }) {
   const [formData, setFormData] = useState({
     businessName: '',
     businessType: 'individual',
-    gstin: '',
+    accountHolderName: '',
+    accountNumber: '',
+    bankName: '',
+    ifscCode: '',
   });
 
   const handleApply = async () => {
@@ -36,10 +39,31 @@ export default function ApplyResellerScreen({ navigation }) {
       return;
     }
 
+    if (!formData.accountHolderName.trim()) {
+      Alert.alert('Error', 'Please enter account holder name');
+      return;
+    }
+
+    if (!formData.accountNumber.trim() || formData.accountNumber.length < 9) {
+      Alert.alert('Error', 'Please enter valid account number (min 9 digits)');
+      return;
+    }
+
+    if (!formData.bankName.trim()) {
+      Alert.alert('Error', 'Please enter bank name');
+      return;
+    }
+
+    if (!formData.ifscCode.trim() || formData.ifscCode.length !== 11) {
+      Alert.alert('Error', 'IFSC code must be 11 characters');
+      return;
+    }
+
     // Submit application
     const result = await dispatch(applyForReseller(formData));
-    
-    if (applyForReseller.fulfilled.match(result)) {
+
+    // ✅ Correct payload check
+    if (result.payload && !result.payload.message?.includes('error')) {
       Alert.alert(
         'Application Submitted! 🎉',
         'We will review your application within 24-48 hours. You will be notified via email.',
@@ -50,8 +74,8 @@ export default function ApplyResellerScreen({ navigation }) {
           },
         ]
       );
-    } else {
-      Alert.alert('Error', result.payload || 'Something went wrong. Please try again.');
+    } else if (result.payload) {
+      Alert.alert('Error', result.payload);
     }
   };
 
@@ -90,7 +114,7 @@ export default function ApplyResellerScreen({ navigation }) {
         {/* Benefits Card */}
         <View style={styles.benefitsCard}>
           <Text style={styles.benefitsTitle}>What You Get</Text>
-          
+
           {benefits.map((benefit, index) => (
             <View key={index} style={styles.benefitItem}>
               <View style={[styles.benefitIcon, { backgroundColor: `${benefit.color}15` }]}>
@@ -164,25 +188,80 @@ export default function ApplyResellerScreen({ navigation }) {
             </View>
           </View>
 
-          {/* GSTIN */}
+          {/* Account Holder Name */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>GSTIN (Optional)</Text>
+            <Text style={styles.label}>
+              Account Holder Name <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.inputWrapper}>
+              <Icon name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="As per bank records"
+                placeholderTextColor="#999"
+                value={formData.accountHolderName}
+                onChangeText={(text) => setFormData({ ...formData, accountHolderName: text })}
+                editable={!isLoading}
+              />
+            </View>
+          </View>
+
+          {/* Account Number */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>
+              Account Number <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.inputWrapper}>
+              <Icon name="card-outline" size={20} color="#666" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter account number"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                value={formData.accountNumber}
+                onChangeText={(text) => setFormData({ ...formData, accountNumber: text })}
+                editable={!isLoading}
+              />
+            </View>
+          </View>
+
+          {/* Bank Name */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>
+              Bank Name <Text style={styles.required}>*</Text>
+            </Text>
+            <View style={styles.inputWrapper}>
+              <Icon name="home-outline" size={20} color="#666" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter bank name"
+                placeholderTextColor="#999"
+                value={formData.bankName}
+                onChangeText={(text) => setFormData({ ...formData, bankName: text })}
+                editable={!isLoading}
+              />
+            </View>
+          </View>
+
+          {/* IFSC Code */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>
+              IFSC Code <Text style={styles.required}>*</Text>
+            </Text>
             <View style={styles.inputWrapper}>
               <Icon name="document-text-outline" size={20} color="#666" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="15-digit GSTIN"
+                placeholder="11-digit IFSC code"
                 placeholderTextColor="#999"
-                value={formData.gstin}
-                onChangeText={(text) => setFormData({ ...formData, gstin: text.toUpperCase() })}
-                maxLength={15}
+                value={formData.ifscCode}
+                onChangeText={(text) => setFormData({ ...formData, ifscCode: text.toUpperCase() })}
+                maxLength={11}
                 autoCapitalize="characters"
                 editable={!isLoading}
               />
             </View>
-            <Text style={styles.helperText}>
-              GST registration helps with higher trust and better rates
-            </Text>
+            <Text style={styles.helperText}>11 characters (e.g., SBIN0001234)</Text>
           </View>
 
           {/* Info Box */}

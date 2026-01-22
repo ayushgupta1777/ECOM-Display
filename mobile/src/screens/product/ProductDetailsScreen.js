@@ -1,12 +1,12 @@
 // ============================================
-// COMPLETE PRODUCT DETAILS WITH WISHLIST + REVIEWS
+// COMPLETE PRODUCT DETAILS WITH WISHLIST + REVIEWS + FULLSCREEN IMAGE
 // Mobile: ProductDetailsScreen.js
 // ============================================
 
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
-  ActivityIndicator, Alert, StyleSheet, Modal, TextInput
+  ActivityIndicator, Alert, StyleSheet, Modal, TextInput, Dimensions
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductDetails } from '../../redux/slices/productSlice';
@@ -14,6 +14,8 @@ import { addToCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const screenWidth = Dimensions.get('window').width;
 
 const ProductDetailsScreen = ({ route, navigation }) => {
   const { productId } = route.params;
@@ -23,6 +25,10 @@ const ProductDetailsScreen = ({ route, navigation }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  
+  // Image Gallery
+  const [showFullscreenImage, setShowFullscreenImage] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   // Reviews
   const [reviews, setReviews] = useState([]);
@@ -196,242 +202,381 @@ const ProductDetailsScreen = ({ route, navigation }) => {
     );
   }
 
+  const productImages = product.images || [];
+
   return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-    
-    <View style={styles.container}>
-      {/* Header with Wishlist */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="chevron-back" size={28} color="#111827" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={toggleWishlist} disabled={wishlistLoading}>
-          {wishlistLoading ? (
-            <ActivityIndicator size="small" color="#FF3B30" />
-          ) : (
-            <Icon
-              name={isInWishlist ? 'heart' : 'heart-outline'}
-              size={28}
-              color={isInWishlist ? '#FF3B30' : '#111827'}
-            />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image */}
-        <Image
-          source={{ uri: product.images?.[0] }}
-          style={styles.image}
-        />
-
-        {/* Details */}
-        <View style={styles.details}>
-          <Text style={styles.title}>{product.title}</Text>
-
-          {/* Rating */}
-          {product.averageRating > 0 && (
-            <View style={styles.ratingRow}>
-              {renderStars(product.averageRating)}
-              <Text style={styles.ratingText}>
-                {product.averageRating.toFixed(1)} ({product.totalReviews || 0} reviews)
-              </Text>
-            </View>
-          )}
-
-          {/* Price */}
-          <View style={styles.priceBox}>
-            <Text style={styles.price}>₹{product.price}</Text>
-            {product.mrp > product.price && (
-              <>
-                <Text style={styles.mrp}>₹{product.mrp}</Text>
-                <Text style={styles.discount}>{product.discount}% OFF</Text>
-              </>
-            )}
-          </View>
-
-          {/* Description */}
-          {product.description && (
-            <View style={styles.descBox}>
-              <Text style={styles.descTitle}>Description</Text>
-              <Text style={styles.description}>{product.description}</Text>
-            </View>
-          )}
-
-          {/* Stock */}
-          <View style={styles.stockBox}>
-            {product.stock > 0 ? (
-              <>
-                <Icon name="checkmark-circle" size={18} color="#10B981" />
-                <Text style={styles.inStock}>In Stock ({product.stock} available)</Text>
-              </>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.container}>
+        {/* Header with Wishlist */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="chevron-back" size={28} color="#111827" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleWishlist} disabled={wishlistLoading}>
+            {wishlistLoading ? (
+              <ActivityIndicator size="small" color="#FF3B30" />
             ) : (
-              <>
-                <Icon name="close-circle" size={18} color="#EF4444" />
-                <Text style={styles.outOfStock}>Out of Stock</Text>
-              </>
+              <Icon
+                name={isInWishlist ? 'heart' : 'heart-outline'}
+                size={28}
+                color={isInWishlist ? '#FF3B30' : '#111827'}
+              />
             )}
-          </View>
+          </TouchableOpacity>
+        </View>
 
-          {/* Reviews Section */}
-          <View style={styles.reviewsSection}>
-            <View style={styles.reviewsHeader}>
-              <Text style={styles.reviewsTitle}>
-                Customer Reviews ({reviews.length})
-              </Text>
-              <TouchableOpacity
-                style={styles.writeReviewBtn}
-                onPress={() => setShowReviewModal(true)}
-              >
-                <Icon name="create-outline" size={18} color="#4F46E5" />
-                <Text style={styles.writeReviewText}>Write Review</Text>
-              </TouchableOpacity>
-            </View>
-
-            {reviewsLoading ? (
-              <ActivityIndicator color="#4F46E5" style={{ marginTop: 20 }} />
-            ) : reviews.length === 0 ? (
-              <View style={styles.noReviews}>
-                <Icon name="star-outline" size={48} color="#D1D5DB" />
-                <Text style={styles.noReviewsText}>No reviews yet</Text>
-                <Text style={styles.noReviewsSubtext}>Be the first to review!</Text>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Enhanced Image Section */}
+          <View style={styles.imageContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setSelectedImageIndex(0);
+                setShowFullscreenImage(true);
+              }}
+            >
+              <Image
+                source={{ uri: productImages[0] }}
+                style={styles.mainImage}
+              />
+              {/* Fullscreen Icon */}
+              <View style={styles.fullscreenBadge}>
+                <Icon name="expand-outline" size={20} color="#fff" />
               </View>
-            ) : (
-              reviews.map((review) => (
-                <View key={review._id} style={styles.reviewCard}>
-                  <View style={styles.reviewHeader}>
-                    <View>
-                      <Text style={styles.reviewerName}>
-                        {review.user?.name || 'Anonymous'}
-                      </Text>
-                      {renderStars(review.rating, 14)}
-                    </View>
-                    {review.verified && (
-                      <View style={styles.verifiedBadge}>
-                        <Icon name="checkmark-circle" size={14} color="#10B981" />
-                        <Text style={styles.verifiedText}>Verified</Text>
-                      </View>
-                    )}
-                  </View>
-                  {review.title && (
-                    <Text style={styles.reviewTitle}>{review.title}</Text>
-                  )}
-                  <Text style={styles.reviewComment}>{review.comment}</Text>
-                  <Text style={styles.reviewDate}>
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </Text>
+            </TouchableOpacity>
+
+            {/* Image Thumbnails */}
+            {productImages.length > 1 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.thumbnailsScroll}
+              >
+                {productImages.map((image, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedImageIndex(index);
+                      setShowFullscreenImage(true);
+                    }}
+                    style={[
+                      styles.thumbnail,
+                      selectedImageIndex === index && styles.thumbnailActive
+                    ]}
+                  >
+                    <Image
+                      source={{ uri: image }}
+                      style={styles.thumbnailImage}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+
+          {/* Details */}
+          <View style={styles.details}>
+            <Text style={styles.title}>{product.title}</Text>
+
+            {/* Rating */}
+            {product.averageRating > 0 && (
+              <View style={styles.ratingRow}>
+                {renderStars(product.averageRating)}
+                <Text style={styles.ratingText}>
+                  {product.averageRating.toFixed(1)} ({product.totalReviews || 0} reviews)
+                </Text>
+              </View>
+            )}
+
+            {/* Price */}
+            <View style={styles.priceBox}>
+              <Text style={styles.price}>₹{product.price}</Text>
+              {product.mrp > product.price && (
+                <>
+                  <Text style={styles.mrp}>₹{product.mrp}</Text>
+                  <Text style={styles.discount}>{product.discount}% OFF</Text>
+                </>
+              )}
+            </View>
+
+            {/* Description */}
+            {product.description && (
+              <View style={styles.descBox}>
+                <Text style={styles.descTitle}>Description</Text>
+                <Text style={styles.description}>{product.description}</Text>
+              </View>
+            )}
+
+            {/* Stock */}
+            <View style={styles.stockBox}>
+              {product.stock > 0 ? (
+                <>
+                  <Icon name="checkmark-circle" size={18} color="#10B981" />
+                  <Text style={styles.inStock}>In Stock ({product.stock} available)</Text>
+                </>
+              ) : (
+                <>
+                  <Icon name="close-circle" size={18} color="#EF4444" />
+                  <Text style={styles.outOfStock}>Out of Stock</Text>
+                </>
+              )}
+            </View>
+
+            {/* Reviews Section */}
+            <View style={styles.reviewsSection}>
+              <View style={styles.reviewsHeader}>
+                <Text style={styles.reviewsTitle}>
+                  Customer Reviews ({reviews.length})
+                </Text>
+                <TouchableOpacity
+                  style={styles.writeReviewBtn}
+                  onPress={() => setShowReviewModal(true)}
+                >
+                  <Icon name="create-outline" size={18} color="#4F46E5" />
+                  <Text style={styles.writeReviewText}>Write Review</Text>
+                </TouchableOpacity>
+              </View>
+
+              {reviewsLoading ? (
+                <ActivityIndicator color="#4F46E5" style={{ marginTop: 20 }} />
+              ) : reviews.length === 0 ? (
+                <View style={styles.noReviews}>
+                  <Icon name="star-outline" size={48} color="#D1D5DB" />
+                  <Text style={styles.noReviewsText}>No reviews yet</Text>
+                  <Text style={styles.noReviewsSubtext}>Be the first to review!</Text>
                 </View>
-              ))
-            )}
+              ) : (
+                reviews.map((review) => (
+                  <View key={review._id} style={styles.reviewCard}>
+                    <View style={styles.reviewHeader}>
+                      <View>
+                        <Text style={styles.reviewerName}>
+                          {review.user?.name || 'Anonymous'}
+                        </Text>
+                        {renderStars(review.rating, 14)}
+                      </View>
+                      {review.verified && (
+                        <View style={styles.verifiedBadge}>
+                          <Icon name="checkmark-circle" size={14} color="#10B981" />
+                          <Text style={styles.verifiedText}>Verified</Text>
+                        </View>
+                      )}
+                    </View>
+                    {review.title && (
+                      <Text style={styles.reviewTitle}>{review.title}</Text>
+                    )}
+                    <Text style={styles.reviewComment}>{review.comment}</Text>
+                    <Text style={styles.reviewDate}>
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
 
-      {/* Footer Actions */}
-      <View style={styles.footer}>
-        {/* Quantity */}
-        <View style={styles.quantityBox}>
+        {/* Footer Actions */}
+        <View style={styles.footer}>
+          {/* Quantity */}
+          <View style={styles.quantityBox}>
+            <TouchableOpacity
+              onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={isAdding}
+            >
+              <Icon name="remove-circle-outline" size={28} color="#4F46E5" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{quantity}</Text>
+            <TouchableOpacity
+              onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
+              disabled={isAdding || quantity >= product.stock}
+            >
+              <Icon name="add-circle-outline" size={28} color="#4F46E5" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Add Button */}
           <TouchableOpacity
-            onPress={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={isAdding}
+            style={[
+              styles.addBtn,
+              (isAdding || product.stock === 0) && styles.addBtnDisabled
+            ]}
+            onPress={handleAddToCart}
+            disabled={isAdding || product.stock === 0}
           >
-            <Icon name="remove-circle-outline" size={28} color="#4F46E5" />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{quantity}</Text>
-          <TouchableOpacity
-            onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
-            disabled={isAdding || quantity >= product.stock}
-          >
-            <Icon name="add-circle-outline" size={28} color="#4F46E5" />
+            {isAdding ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Icon name="cart-outline" size={20} color="#fff" />
+                <Text style={styles.addBtnText}>
+                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
-        {/* Add Button */}
-        <TouchableOpacity
-          style={[
-            styles.addBtn,
-            (isAdding || product.stock === 0) && styles.addBtnDisabled
-          ]}
-          onPress={handleAddToCart}
-          disabled={isAdding || product.stock === 0}
+        {/* Fullscreen Image Viewer Modal */}
+        <Modal
+          visible={showFullscreenImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFullscreenImage(false)}
         >
-          {isAdding ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <>
-              <Icon name="cart-outline" size={20} color="#fff" />
-              <Text style={styles.addBtnText}>
-                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Review Modal */}
-      <Modal
-        visible={showReviewModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowReviewModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Write a Review</Text>
-              <TouchableOpacity onPress={() => setShowReviewModal(false)}>
-                <Icon name="close" size={24} color="#6B7280" />
+          <SafeAreaView style={styles.fullscreenContainer}>
+            {/* Header */}
+            <View style={styles.fullscreenHeader}>
+              <TouchableOpacity onPress={() => setShowFullscreenImage(false)}>
+                <Icon name="close" size={28} color="#fff" />
               </TouchableOpacity>
+              <Text style={styles.fullscreenCounter}>
+                {selectedImageIndex + 1} / {productImages.length}
+              </Text>
+              <View style={{ width: 28 }} />
             </View>
 
-            <ScrollView style={styles.modalBody}>
-              {/* Rating */}
-              <Text style={styles.modalLabel}>Rating</Text>
-              <View style={styles.modalRating}>
-                {renderStars(reviewForm.rating, 32, true, (rating) =>
-                  setReviewForm({ ...reviewForm, rating })
-                )}
+            {/* Main Image */}
+            <ScrollView
+              horizontal
+              pagingEnabled
+              scrollEventThrottle={16}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x / screenWidth
+                );
+                setSelectedImageIndex(index);
+              }}
+              scrollIndicatorInsets={{ right: 1 }}
+            >
+              {productImages.map((image, index) => (
+                <View key={index} style={{ width: screenWidth }}>
+                  <Image
+                    source={{ uri: image }}
+                    style={styles.fullscreenImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* Navigation Arrows */}
+            {productImages.length > 1 && (
+              <>
+                <TouchableOpacity
+                  style={[styles.arrowButton, styles.arrowLeft]}
+                  onPress={() => {
+                    const newIndex = Math.max(0, selectedImageIndex - 1);
+                    setSelectedImageIndex(newIndex);
+                  }}
+                >
+                  <Icon name="chevron-back" size={32} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.arrowButton, styles.arrowRight]}
+                  onPress={() => {
+                    const newIndex = Math.min(
+                      productImages.length - 1,
+                      selectedImageIndex + 1
+                    );
+                    setSelectedImageIndex(newIndex);
+                  }}
+                >
+                  <Icon name="chevron-forward" size={32} color="#fff" />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Thumbnail Gallery at Bottom */}
+            {productImages.length > 1 && (
+              <View style={styles.fullscreenThumbnails}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {productImages.map((image, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => setSelectedImageIndex(index)}
+                      style={[
+                        styles.fullscreenThumbnail,
+                        selectedImageIndex === index && styles.fullscreenThumbnailActive
+                      ]}
+                    >
+                      <Image
+                        source={{ uri: image }}
+                        style={styles.fullscreenThumbnailImage}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </SafeAreaView>
+        </Modal>
+
+        {/* Review Modal */}
+        <Modal
+          visible={showReviewModal}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowReviewModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Write a Review</Text>
+                <TouchableOpacity onPress={() => setShowReviewModal(false)}>
+                  <Icon name="close" size={24} color="#6B7280" />
+                </TouchableOpacity>
               </View>
 
-              {/* Title */}
-              <Text style={styles.modalLabel}>Title (Optional)</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Summary of your review"
-                value={reviewForm.title}
-                onChangeText={(text) => setReviewForm({ ...reviewForm, title: text })}
-                maxLength={100}
-              />
+              <ScrollView style={styles.modalBody}>
+                {/* Rating */}
+                <Text style={styles.modalLabel}>Rating</Text>
+                <View style={styles.modalRating}>
+                  {renderStars(reviewForm.rating, 32, true, (rating) =>
+                    setReviewForm({ ...reviewForm, rating })
+                  )}
+                </View>
 
-              {/* Comment */}
-              <Text style={styles.modalLabel}>Review *</Text>
-              <TextInput
-                style={[styles.modalInput, styles.modalTextArea]}
-                placeholder="Share your experience with this product..."
-                value={reviewForm.comment}
-                onChangeText={(text) => setReviewForm({ ...reviewForm, comment: text })}
-                multiline
-                numberOfLines={5}
-                textAlignVertical="top"
-              />
+                {/* Title */}
+                <Text style={styles.modalLabel}>Title (Optional)</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Summary of your review"
+                  value={reviewForm.title}
+                  onChangeText={(text) => setReviewForm({ ...reviewForm, title: text })}
+                  maxLength={100}
+                />
 
-              <TouchableOpacity
-                style={styles.submitReviewBtn}
-                onPress={submitReview}
-                disabled={submittingReview}
-              >
-                {submittingReview ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.submitReviewText}>Submit Review</Text>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
+                {/* Comment */}
+                <Text style={styles.modalLabel}>Review *</Text>
+                <TextInput
+                  style={[styles.modalInput, styles.modalTextArea]}
+                  placeholder="Share your experience with this product..."
+                  value={reviewForm.comment}
+                  onChangeText={(text) => setReviewForm({ ...reviewForm, comment: text })}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                />
+
+                <TouchableOpacity
+                  style={styles.submitReviewBtn}
+                  onPress={submitReview}
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.submitReviewText}>Submit Review</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
-        </SafeAreaView>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -449,7 +594,46 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6'
   },
-  image: { width: '100%', height: 300, backgroundColor: '#F3F4F6' },
+  imageContainer: {
+    backgroundColor: '#F9FAFB',
+    paddingBottom: 12
+  },
+  mainImage: {
+    width: '100%',
+    height: 420,
+    backgroundColor: '#F3F4F6'
+  },
+  fullscreenBadge: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 24,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  thumbnailsScroll: {
+    paddingHorizontal: 12,
+    paddingTop: 12
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 8,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden'
+  },
+  thumbnailActive: {
+    borderColor: '#4F46E5'
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%'
+  },
   details: { padding: 16 },
   title: { fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 8 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
@@ -487,6 +671,63 @@ const styles = StyleSheet.create({
   addBtn: { flex: 1, backgroundColor: '#4F46E5', paddingVertical: 14, borderRadius: 8, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
   addBtnDisabled: { opacity: 0.6 },
   addBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: '#000'
+  },
+  fullscreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12
+  },
+  fullscreenCounter: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600'
+  },
+  fullscreenImage: {
+    width: screenWidth,
+    height: '100%',
+    backgroundColor: '#000'
+  },
+  arrowButton: {
+    position: 'absolute',
+    top: '50%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 24,
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  arrowLeft: {
+    left: 16
+  },
+  arrowRight: {
+    right: 16
+  },
+  fullscreenThumbnails: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingVertical: 12,
+    paddingHorizontal: 8
+  },
+  fullscreenThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 6,
+    marginHorizontal: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden'
+  },
+  fullscreenThumbnailActive: {
+    borderColor: '#4F46E5'
+  },
+  fullscreenThumbnailImage: {
+    width: '100%',
+    height: '100%'
+  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },

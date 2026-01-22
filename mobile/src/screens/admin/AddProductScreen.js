@@ -79,22 +79,23 @@ const AddProductScreen = ({ navigation }) => {
   };
 
   const pickImages = async () => {
-    const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Camera roll permission is required');
-      return;
-    }
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxWidth: 2000,
+      maxHeight: 2000,
+      selectionLimit: 5
+    };
 
-    const result = await launchImageLibrary.launchImageLibraryAsync({
-      mediaTypes: launchImageLibrary.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.8
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        Alert.alert('Error', response.errorMessage || 'Failed to pick images');
+      } else if (response.assets && response.assets.length > 0) {
+        uploadImages(response.assets);
+      }
     });
-
-    if (!result.canceled) {
-      uploadImages(result.assets);
-    }
   };
 
   const uploadImages = async (images) => {

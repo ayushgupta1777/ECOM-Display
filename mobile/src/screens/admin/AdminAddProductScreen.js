@@ -10,14 +10,18 @@ import api from '../../services/api';
 
 const AddProductScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showSubcategoryModal, setShowSubcategoryModal] = useState(false);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
+    subcategory: '',
     price: '',
     mrp: '',
     stock: '',
@@ -31,42 +35,69 @@ const AddProductScreen = ({ navigation }) => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(response.data.data.categories);
+      // Filter only root categories (no parent)
+      const rootCategories = response.data.data.categories.filter(cat => !cat.parent || cat.parent === null);
+      setCategories(rootCategories);
     } catch (error) {
       Alert.alert('Error', 'Failed to load categories');
     }
   };
 
-  // Reset form to initial state
+  // Fetch subcategories when category is selected
+  const fetchSubcategories = async (categoryId) => {
+    try {
+      setLoadingSubcategories(true);
+      const response = await api.get('/categories', {
+        params: { parent: categoryId }
+      });
+      setSubcategories(response.data.data.categories);
+    } catch (error) {
+      console.error('Failed to load subcategories:', error);
+      setSubcategories([]);
+    } finally {
+      setLoadingSubcategories(false);
+    }
+  };
+
+  const handleCategorySelect = (categoryId) => {
+    setFormData({ ...formData, category: categoryId, subcategory: '' });
+    setShowCategoryModal(false);
+    // Fetch subcategories for this category
+    fetchSubcategories(categoryId);
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
       description: '',
       category: '',
+      subcategory: '',
       price: '',
       mrp: '',
       stock: '',
       images: []
     });
+    setSubcategories([]);
   };
 
   const pickImages = async () => {
-    const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Camera roll permission is required');
-      return;
-    }
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxWidth: 2000,
+      maxHeight: 2000,
+      selectionLimit: 5
+    };
 
-    const result = await launchImageLibrary.launchImageLibraryAsync({
-      mediaTypes: launchImageLibrary.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.8
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        Alert.alert('Error', response.errorMessage || 'Failed to pick images');
+      } else if (response.assets && response.assets.length > 0) {
+        uploadImages(response.assets);
+      }
     });
-
-    if (!result.canceled) {
-      uploadImages(result.assets);
-    }
   };
 
   const uploadImages = async (images) => {
@@ -161,7 +192,9 @@ const AddProductScreen = ({ navigation }) => {
         price: parseFloat(formData.price),
         mrp: parseFloat(formData.mrp),
         stock: parseInt(formData.stock),
-        discount: calculateDiscount()
+        discount: calculateDiscount(),
+        category: formData.category,
+        subcategory: formData.subcategory || null
       };
 
       const response = await api.post('/admin/products', productData);
@@ -170,7 +203,7 @@ const AddProductScreen = ({ navigation }) => {
         Alert.alert('Success', 'Product added successfully!', [
           {
             text: 'Add Another',
-            onPress: () => resetForm() // Clear form for next product
+            onPress: () => resetForm()
           },
           {
             text: 'Go Back',
@@ -186,8 +219,9 @@ const AddProductScreen = ({ navigation }) => {
   };
 
   const selectedCategory = categories.find(c => c._id === formData.category);
+  const selectedSubcategory = subcategories.find(c => c._id === formData.subcategory);
 
-  // Category Modal Component
+  // Category Selection Modal
   const CategoryModal = () => (
     <Modal
       visible={showCategoryModal}
@@ -197,7 +231,6 @@ const AddProductScreen = ({ navigation }) => {
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          {/* Modal Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Category</Text>
             <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
@@ -205,7 +238,6 @@ const AddProductScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Category List */}
           <FlatList
             data={categories}
             keyExtractor={(item) => item._id}
@@ -215,10 +247,7 @@ const AddProductScreen = ({ navigation }) => {
                   styles.categoryItem,
                   formData.category === item._id && styles.categoryItemSelected
                 ]}
-                onPress={() => {
-                  setFormData({ ...formData, category: item._id });
-                  setShowCategoryModal(false);
-                }}
+                onPress={() => handleCategorySelect(item._id)}
               >
                 <View style={styles.categoryItemContent}>
                   {item.image && (
@@ -237,8 +266,71 @@ const AddProductScreen = ({ navigation }) => {
                 )}
               </TouchableOpacity>
             )}
-            scrollEnabled={true}
           />
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // Subcategory Selection Modal
+  const SubcategoryModal = () => (
+    <Modal
+      visible={showSubcategoryModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowSubcategoryModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Subcategory</Text>
+            <TouchableOpacity onPress={() => setShowSubcategoryModal(false)}>
+              <Icon name="close" size={24} color="#111827" />
+            </TouchableOpacity>
+          </View>
+
+          {loadingSubcategories ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#4F46E5" />
+            </View>
+          ) : subcategories.length === 0 ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#9CA3AF' }}>No subcategories available</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={subcategories}
+              keyExtractor={(item) => item._id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.categoryItem,
+                    formData.subcategory === item._id && styles.categoryItemSelected
+                  ]}
+                  onPress={() => {
+                    setFormData({ ...formData, subcategory: item._id });
+                    setShowSubcategoryModal(false);
+                  }}
+                >
+                  <View style={styles.categoryItemContent}>
+                    {item.image && (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.categoryItemImage}
+                      />
+                    )}
+                    <View style={styles.categoryItemText}>
+                      <Text style={styles.categoryItemName}>{item.name}</Text>
+                      <Text style={styles.categoryItemSlug}>{item.slug}</Text>
+                    </View>
+                  </View>
+                  {formData.subcategory === item._id && (
+                    <Icon name="checkmark-circle" size={24} color="#4F46E5" />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          )}
         </View>
       </View>
     </Modal>
@@ -327,21 +419,51 @@ const AddProductScreen = ({ navigation }) => {
             />
           </View>
 
+          {/* Step 1: Category Selection */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Category * ({categories.length})</Text>
+            <Text style={styles.label}>Category * (Step 1)</Text>
             <TouchableOpacity
               style={styles.pickerWrapper}
               onPress={() => setShowCategoryModal(true)}
               activeOpacity={0.7}
             >
               <View style={styles.pickerButton}>
-                <Text style={[styles.pickerText, !formData.category && { color: '#9CA3AF' }]}>
-                  {selectedCategory ? selectedCategory.name : 'Select Category'}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.pickerText, !formData.category && { color: '#9CA3AF' }]}>
+                    {selectedCategory ? selectedCategory.name : 'Select Category'}
+                  </Text>
+                </View>
                 <Icon name="chevron-down" size={20} color="#6B7280" />
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Step 2: Subcategory Selection (shows only after category is selected) */}
+          {formData.category && (
+            <View style={styles.formGroup}>
+              <View style={styles.stepBadge}>
+                <Text style={styles.stepBadgeText}>Step 2</Text>
+              </View>
+              <Text style={styles.label}>Subcategory (Optional)</Text>
+              <TouchableOpacity
+                style={styles.pickerWrapper}
+                onPress={() => setShowSubcategoryModal(true)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.pickerButton}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.pickerText, !formData.subcategory && { color: '#9CA3AF' }]}>
+                      {selectedSubcategory ? selectedSubcategory.name : 'Select Subcategory (optional)'}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-down" size={20} color="#6B7280" />
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.helperText}>
+                {subcategories.length} subcategories available for {selectedCategory?.name}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Pricing */}
@@ -425,8 +547,9 @@ const AddProductScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Category Modal */}
+      {/* Modals */}
       <CategoryModal />
+      <SubcategoryModal />
     </View>
   );
 };
@@ -547,6 +670,25 @@ const styles = StyleSheet.create({
   pickerText: {
     fontSize: 15,
     color: '#111827'
+  },
+  stepBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 12
+  },
+  stepBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0284C7'
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 8,
+    fontStyle: 'italic'
   },
   row: {
     flexDirection: 'row'

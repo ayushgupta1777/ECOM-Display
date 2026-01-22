@@ -386,13 +386,14 @@ const [bannerIndex, setBannerIndex] = useState(0);
                 )}
 
                 {/* Overlay Text */}
-                <View style={styles.categoryOverlay}>
+                
+                {/* <View style={styles.categoryOverlay}>
                   <Text style={styles.categoryName}>{item.name}</Text>
                   <Text style={styles.categorySubtext}>Exclusive Collections</Text>
                   <TouchableOpacity style={styles.exploreBtn}>
                     <Text style={styles.exploreBtnText}>Explore More</Text>
                   </TouchableOpacity>
-                </View>
+                </View>*/}
 
                 {/* Play Button for Videos (Optional) */}
                 {item.hasVideo && (
@@ -818,19 +819,22 @@ const styles = StyleSheet.create({
     color: '#fff'
   },
   
-  // Banner Slider
+   // Banner Slider - INCREASED HEIGHT FROM 200 TO 280
   bannerContainer: {
-    height: 200,
+    height: 280,
     position: 'relative'
   },
+
   bannerSlide: {
     width: width,
-    height: 200
+    height: 280
   },
+
   bannerImage: {
     width: '100%',
     height: '100%'
   },
+
   dotsContainer: {
     position: 'absolute',
     bottom: 12,
@@ -838,21 +842,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6
   },
+
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: 'rgba(255,255,255,0.5)'
   },
+
   dotActive: {
     backgroundColor: '#fff',
     width: 24
   },
-  
-  // Category Graphics - Like Pyrite Fashion
+
+  // Category Graphics - REDUCED GAP FROM 16 TO 8
   categoriesSection: {
-    paddingVertical: 16
+    paddingVertical: 8,
+    paddingHorizontal: 0
   },
+
+  
   categoryGraphic: {
     height: 280,
     marginBottom: 12,

@@ -54,21 +54,22 @@ const CategoryManagementScreen = ({ navigation }) => {
   };
 
   const pickImage = async () => {
-    const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
+    const options = {
+      mediaType: 'photo',
+      includeBase64: false,
+      maxWidth: 2000,
+      maxHeight: 2000
+    };
 
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Camera roll permission is required');
-      return;
-    }
-
-    const result = await launchImageLibrary.launchImageLibraryAsync({
-      mediaTypes: launchImageLibrary.MediaTypeOptions.Images,
-      quality: 0.8
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        Alert.alert('Error', response.errorMessage || 'Failed to pick image');
+      } else if (response.assets && response.assets.length > 0) {
+        uploadImage(response.assets[0]);
+      }
     });
-
-    if (!result.canceled) {
-      uploadImage(result.assets[0]);
-    }
   };
 
   const uploadImage = async (image) => {

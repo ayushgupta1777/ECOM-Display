@@ -1,11 +1,7 @@
-// ============================================
-// ADMIN ORDER DETAILS WITH SHIPROCKET ACTIONS
-// ============================================
-
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Modal
+  StyleSheet, ActivityIndicator, Alert, Modal, Image
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
@@ -87,7 +83,6 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
             text: 'View',
             onPress: () => {
               // Open label URL
-              // Linking.openURL(response.data.data.labelUrl);
             }
           },
           { text: 'OK' }
@@ -376,15 +371,46 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Order Items */}
+        {/* Order Items - WITH PRODUCT IMAGES */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
           {order.items.map((item, index) => (
             <View key={index} style={styles.itemCard}>
-              <Text style={styles.itemName}>{item.product?.title}</Text>
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
-                <Text style={styles.itemPrice}>₹{item.finalPrice}</Text>
+              {/* Product Image */}
+              {item.product?.images && item.product.images[0] && (
+                <Image
+                  source={{ uri: item.product.images[0] }}
+                  style={styles.itemImage}
+                />
+              )}
+
+              <View style={styles.itemContent}>
+                <Text style={styles.itemName} numberOfLines={2}>
+                  {item.product?.title}
+                </Text>
+                
+                {/* Item Details */}
+                <View style={styles.itemMetaRow}>
+                  <View style={styles.itemMetaBox}>
+                    <Text style={styles.itemMetaLabel}>Qty</Text>
+                    <Text style={styles.itemMetaValue}>{item.quantity}</Text>
+                  </View>
+                  
+                  <View style={styles.itemMetaBox}>
+                    <Text style={styles.itemMetaLabel}>Unit Price</Text>
+                    <Text style={styles.itemMetaValue}>₹{item.price}</Text>
+                  </View>
+
+                  <View style={styles.itemMetaBox}>
+                    <Text style={styles.itemMetaLabel}>Total</Text>
+                    <Text style={styles.itemMetaValue}>₹{item.finalPrice}</Text>
+                  </View>
+                </View>
+
+                {/* SKU if available */}
+                {item.product?.sku && (
+                  <Text style={styles.itemSku}>SKU: {item.product.sku}</Text>
+                )}
               </View>
             </View>
           ))}
@@ -608,16 +634,75 @@ const styles = StyleSheet.create({
   addressContent: { flex: 1 },
   addressName: { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 4 },
   addressText: { fontSize: 13, color: '#6B7280', lineHeight: 20 },
+
+  // Updated Item Card Styles with Image
   itemCard: {
+    flexDirection: 'row',
     backgroundColor: '#F9FAFB',
     padding: 12,
     borderRadius: 8,
+    marginBottom: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+
+  itemImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+
+  itemContent: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+
+  itemName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 8
   },
-  itemName: { fontSize: 14, fontWeight: '600', color: '#111827', marginBottom: 8 },
-  itemDetails: { flexDirection: 'row', justifyContent: 'space-between' },
-  itemQty: { fontSize: 13, color: '#6B7280' },
-  itemPrice: { fontSize: 14, fontWeight: '700', color: '#4F46E5' },
+
+  itemMetaRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8
+  },
+
+  itemMetaBox: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+
+  itemMetaLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '600'
+  },
+
+  itemMetaValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#4F46E5',
+    marginTop: 2
+  },
+
+  itemSku: {
+    fontSize: 11,
+    color: '#9CA3AF',
+    fontStyle: 'italic'
+  },
+
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -141,7 +141,7 @@ const CartStack = () => (
 const ResellerStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: true }}>
    <Stack.Screen name="ResellerHubMain" component={ResellerHubScreen} />
-      <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} />
+      <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} screenOptions={{ headerShown: false }} />
     <Stack.Screen name="ShareProduct" component={ShareProductScreen} />
     {/* <Stack.Screen name="MySales" component={MySalesScreen} />
     <Stack.Screen name="MyEarnings" component={MyEarningsScreen} />*/}
@@ -164,7 +164,7 @@ const OrdersStack = () => (
 const ProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-     <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} />
+     <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen}  />
     {/*<Stack.Screen name="MyEarnings" component={MyEarningsScreen} />
     <Stack.Screen name="MySales" component={MySalesScreen} /> */}
     <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
