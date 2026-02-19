@@ -2,13 +2,13 @@
 // mobile/src/screens/auth/OnboardingScreen.js
 // ============================================
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../../styling/screens/auth/OnboardingScreenPremiumStyles';
 
 const OnboardingScreen = ({ navigation }) => {
   return (
-    <View style={styles['onboarding-premium-container']}>
+    <ScrollView style={styles['onboarding-premium-container']}>
       {/* Gradient Background Overlay */}
       <View style={styles['onboarding-premium-gradient']} />
       
@@ -17,42 +17,47 @@ const OnboardingScreen = ({ navigation }) => {
         {/* Logo Section */}
         <View style={styles['onboarding-premium-logo-section']}>
           <View style={styles['onboarding-premium-logo-container']}>
-            <Icon name="storefront" size={64} color="#0A84FF" />
+            <Image
+              source={require('../../assets/Logo_NRF.png')}
+              style={styles['onboarding-premium-logo-image']}
+              resizeMode="contain"
+            />
           </View>
-          <Text style={styles['onboarding-premium-brand']}>ERA</Text>
+          <Text style={styles['onboarding-premium-brand']}>New Raj Fancy</Text>
+          <Text style={styles['onboarding-premium-brand-subtitle']}>NRF</Text>
         </View>
 
         {/* Hero Text */}
         <View style={styles['onboarding-premium-hero']}>
           <Text style={styles['onboarding-premium-title']}>
-            Welcome to{'\n'}Premium Shopping
+            Welcome to{'\n'}Your New Raj Fancy
           </Text>
           <Text style={styles['onboarding-premium-subtitle']}>
-            Shop exclusive products, become a vendor, or earn as a reseller
+            Shop exclusive jewelry, become a vendor, or earn as a reseller
           </Text>
         </View>
 
         {/* Feature Cards */}
         <View style={styles['onboarding-premium-features']}>
           <View style={styles['onboarding-premium-feature-card']}>
-            <View style={[styles['onboarding-premium-feature-icon'], { backgroundColor: '#E3F2FD' }]}>
-              <Icon name="cart" size={24} color="#0A84FF" />
+            <View style={[styles['onboarding-premium-feature-icon'], { backgroundColor: '#FFF8E1' }]}>
+              <Icon name="cart" size={24} color="#D4AF37" />
             </View>
-            <Text style={styles['onboarding-premium-feature-text']}>Shop Premium</Text>
+            <Text style={styles['onboarding-premium-feature-text']}>Shop{'\n'}Premium</Text>
           </View>
 
           <View style={styles['onboarding-premium-feature-card']}>
             <View style={[styles['onboarding-premium-feature-icon'], { backgroundColor: '#F3E5F5' }]}>
               <Icon name="storefront" size={24} color="#5E5CE6" />
             </View>
-            <Text style={styles['onboarding-premium-feature-text']}>Sell Products</Text>
+            <Text style={styles['onboarding-premium-feature-text']}>Sell{'\n'}Products</Text>
           </View>
 
           <View style={styles['onboarding-premium-feature-card']}>
-            <View style={[styles['onboarding-premium-feature-icon'], { backgroundColor: '#FFF3E0' }]}>
-              <Icon name="share-social" size={24} color="#FF9500" />
+            <View style={[styles['onboarding-premium-feature-icon'], { backgroundColor: '#E8F5E9' }]}>
+              <Icon name="share-social" size={24} color="#4CAF50" />
             </View>
-            <Text style={styles['onboarding-premium-feature-text']}>Earn Money</Text>
+            <Text style={styles['onboarding-premium-feature-text']}>Earn{'\n'}Money</Text>
           </View>
         </View>
       </View>
@@ -62,14 +67,16 @@ const OnboardingScreen = ({ navigation }) => {
         <TouchableOpacity
           style={styles['onboarding-premium-button-primary']}
           onPress={() => navigation.navigate('Login')}
+          activeOpacity={0.8}
         >
           <Text style={styles['onboarding-premium-button-primary-text']}>Sign In</Text>
-          <Icon name="arrow-forward" size={20} color="#fff" />
+          <Icon name="arrow-forward" size={20} color="#1A1A1A" />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles['onboarding-premium-button-secondary']}
           onPress={() => navigation.navigate('Register')}
+          activeOpacity={0.8}
         >
           <Text style={styles['onboarding-premium-button-secondary-text']}>Create Account</Text>
         </TouchableOpacity>
@@ -79,7 +86,7 @@ const OnboardingScreen = ({ navigation }) => {
           By continuing, you agree to our Terms & Privacy Policy
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

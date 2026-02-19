@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, Image,
-  ActivityIndicator, StyleSheet, SafeAreaView
+  ActivityIndicator, StyleSheet, SafeAreaView, Dimensions
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
+
+const { width } = Dimensions.get('window');
 
 const SubcategoryListScreen = ({ route }) => {
   const { categoryId, categoryName } = route.params;
@@ -40,30 +42,38 @@ const SubcategoryListScreen = ({ route }) => {
         subcategoryName: item.name,
         categoryName: categoryName
       })}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
     >
-      <View style={styles.subcategoryImageContainer}>
-        {item.image ? (
-          <Image
-            source={{ uri: item.image }}
-            style={styles.subcategoryImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.subcategoryImagePlaceholder}>
-            <Icon name="image-outline" size={32} color="#9CA3AF" />
+      {/* Black Background with Gold Border */}
+      <View style={styles.cardInner}>
+        {/* Product Image on Left */}
+        <View style={styles.imageSection}>
+          <View style={styles.imageBorder}>
+            {item.image ? (
+              <Image
+                source={{ uri: item.image }}
+                style={styles.productImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Icon name="image-outline" size={48} color="#D4AF37" />
+              </View>
+            )}
           </View>
-        )}
-      </View>
+        </View>
 
-      <View style={styles.subcategoryInfo}>
-        <Text style={styles.subcategoryName}>{item.name}</Text>
-        <Text style={styles.subcategoryDescription}>
-          {item.description || 'Explore our collection'}
-        </Text>
+        {/* Text Section on Right */}
+        <View style={styles.textSection}>
+          <Text style={styles.subcategoryTitle}>{item.name}</Text>
+          <Text style={styles.exclusiveText}>Exclusive Collections</Text>
+          
+          {/* Explore More Button */}
+          <View style={styles.exploreButton}>
+            <Text style={styles.exploreButtonText}>Explore More</Text>
+          </View>
+        </View>
       </View>
-
-      <Icon name="chevron-forward" size={24} color="#6B7280" />
     </TouchableOpacity>
   );
 
@@ -71,8 +81,8 @@ const SubcategoryListScreen = ({ route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
-          <Text style={styles.loadingText}>Loading subcategories...</Text>
+          <ActivityIndicator size="large" color="#D4AF37" />
+          <Text style={styles.loadingText}>Loading collections...</Text>
         </View>
       </SafeAreaView>
     );
@@ -103,10 +113,10 @@ const SubcategoryListScreen = ({ route }) => {
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Icon name="folder-open-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyText}>No subcategories found</Text>
+          <Icon name="folder-open-outline" size={64} color="#D4AF37" />
+          <Text style={styles.emptyText}>No collections found</Text>
           <Text style={styles.emptySubtext}>
-            Subcategories will be added soon for {categoryName}
+            New collections will be added soon for {categoryName}
           </Text>
         </View>
       )}
@@ -117,7 +127,7 @@ const SubcategoryListScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F5F5F5',
   },
   header: {
     flexDirection: 'row',
@@ -134,7 +144,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1F2937',
   },
   headerRight: {
@@ -149,57 +159,92 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: '#6B7280',
+    fontWeight: '500',
   },
   listContainer: {
     padding: 16,
   },
+  
+  // Premium Card Styles - Like Client Reference
   subcategoryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  subcategoryImageContainer: {
-    width: 60,
-    height: 60,
+    marginBottom: 20,
     borderRadius: 8,
     overflow: 'hidden',
-    marginRight: 16,
   },
-  subcategoryImage: {
-    width: '100%',
-    height: '100%',
+  cardInner: {
+    flexDirection: 'row',
+    backgroundColor: '#1A1A1A',
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+    borderRadius: 8,
+    overflow: 'hidden',
+    minHeight: 180,
   },
-  subcategoryImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F3F4F6',
+  
+  // Image Section (Left Side)
+  imageSection: {
+    width: width * 0.4,
+   
+    padding: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  subcategoryInfo: {
+  imageBorder: {
+    width: '100%',
+    aspectRatio: 1,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor: '#2A2A2A',
+  },
+  productImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#2A2A2A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  // Text Section (Right Side)
+  textSection: {
     flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
-  subcategoryName: {
-    fontSize: 16,
+  subcategoryTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#D4AF37',
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  exclusiveText: {
+    fontSize: 13,
+    color: '#A0A0A0',
+    marginBottom: 20,
+    fontWeight: '400',
+    letterSpacing: 1,
+  },
+  exploreButton: {
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 4,
+  },
+  exploreButtonText: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
+    color: '#1A1A1A',
+    letterSpacing: 0.5,
   },
-  subcategoryDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
+  
+  // Empty State
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -208,7 +253,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1F2937',
     marginTop: 16,
     marginBottom: 8,

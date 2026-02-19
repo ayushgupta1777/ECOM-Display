@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL - Update this with your backend URL
 // const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://era-backend-psi.vercel.app/api';
+const API_BASE_URL = 'https://newrajfancystore.adsngrow.in/api';
 
 // For Android emulator use: http://10.0.2.2:5000/api
 // For real device use your computer's IP: http://192.168.x.x:5000/api

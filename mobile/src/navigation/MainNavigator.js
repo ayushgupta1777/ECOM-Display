@@ -18,6 +18,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import PaymentScreen from '../screens/payment/PaymentScreen';
 import OrderSuccessScreen from '../screens/orders/OrderSuccessScreen';
 import PaymentGatewayScreen from '../screens/payment/PaymentGatewayScreen';
+import CreateSupportTicketScreen from '../screens/orders/CreateSupportTicketScreen';
 
 import CategoryListScreen from '../screens/product/CategoryListScreen';
 import SubcategoryListScreen from '../screens/product/SubcategoryListScreen';
@@ -27,12 +28,24 @@ import SearchScreen from '../screens/home/SearchScreen';
 import NotificationsScreen from '../screens/home/NotificationsScreen';
 
 // Reseller Feature Screens (Core Feature)
-import ResellerHubScreen from '../screens/reseller/ResellerHubScreen';
+import ResellerHubScreen from '../screens/reseller/ResellerHubScreen_np';
 import ShareProductScreen from '../screens/reseller/ShareProductScreen';
 // import MyEarningsScreen from '../screens/reseller/MyEarningsScreen';  
 import WithdrawScreen from '../screens/reseller/WithdrawRequestScreen';
 // import MySalesScreen from '../screens/reseller/MySalesScreen';
-import BecomeResellerScreen from '../screens/reseller/ApplyResellerScreen';
+import BecomeResellerScreen from '../screens/reseller/ApplyResellerScreen_np';
+
+
+// Np Reseller
+import ResellerHubScreen_np from '../screens/reseller/ResellerHubScreen_np';
+import TransactionHistoryScreen from '../screens/reseller/TransactionHistoryScreen_np';
+import SalesHistoryScreen from '../screens/reseller/SalesHistoryScreen_np';
+import WithdrawalHistoryScreen from '../screens/reseller/WithdrawalHistoryScreen_np';
+import ApplyResellerScreen from '../screens/reseller/ApplyResellerScreen_np';
+import ResellerWalletScreen from '../screens/reseller/ResellerWalletScreen';
+import WithdrawRequestScreen from '../screens/reseller/WithdrawRequestScreen';
+
+
 
 // Admin Screens
 // import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -138,14 +151,26 @@ const CartStack = () => (
 );
 
 // RESELLER HUB STACK (Core Feature - Most Important)
+// ✅ UPDATED RESELLER STACK
 const ResellerStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: true }}>
-   <Stack.Screen name="ResellerHubMain" component={ResellerHubScreen} />
-      <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} screenOptions={{ headerShown: false }} />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    {/* Main Hub */}
+    <Stack.Screen name="ResellerHubMain" component={ResellerHubScreen} />
+    
+    {/* Application */}
+    <Stack.Screen name="BecomeReseller" component={ApplyResellerScreen} />
+    
+    {/* Wallet & Money */}
+    <Stack.Screen name="ResellerWallet" component={ResellerWalletScreen} />
+    <Stack.Screen name="Withdraw" component={WithdrawRequestScreen} />
+    
+    {/* History Screens */}
+    <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
+    <Stack.Screen name="SalesHistory" component={SalesHistoryScreen} />
+    <Stack.Screen name="WithdrawHistory" component={WithdrawalHistoryScreen} />
+    
+    {/* Product Sharing */}
     <Stack.Screen name="ShareProduct" component={ShareProductScreen} />
-    {/* <Stack.Screen name="MySales" component={MySalesScreen} />
-    <Stack.Screen name="MyEarnings" component={MyEarningsScreen} />*/}
-    <Stack.Screen name="Withdraw" component={WithdrawScreen} /> 
     <Stack.Screen name="ProductList" component={ProductListScreen} />
     <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
   </Stack.Navigator>
@@ -153,10 +178,24 @@ const ResellerStack = () => (
 
 // ORDERS STACK
 const OrdersStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
     <Stack.Screen name="OrdersList" component={OrdersScreen} />
     <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
     <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+      <Stack.Screen
+      name="CreateSupportTicket"
+      component={CreateSupportTicketScreen}
+    />
+
+    <Stack.Screen 
+      name="PaymentGateway" 
+      component={PaymentGatewayScreen}
+      options={{ gestureEnabled: false }}
+    />
+      <Stack.Screen name="InitiateReturn" component={ InitiateReturnScreen} />
+    <Stack.Screen name="MyReturns" component={MyReturnsScreen} /> 
+
+
   </Stack.Navigator>
 );
 

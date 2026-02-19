@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Image
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, clearError } from '../../redux/slices/authSlice';
@@ -51,13 +52,24 @@ const LoginScreen = ({ navigation }) => {
         contentContainerStyle={styles['login-premium-scroll']}
         showsVerticalScrollIndicator={false}
       >
-        {/* Premium Header with Gradient Background */}
+        {/* Premium Header with Logo and Brand */}
         <View style={styles['login-premium-header']}>
           <View style={styles['login-premium-logo-container']}>
-            <View style={styles['login-premium-logo-circle']}>
-              <Icon name="storefront" size={48} color="#0A84FF" />
+            <View style={styles['login-premium-logo-wrapper']}>
+              <Image
+                source={require('../../assets/Logo_NRF.png')}
+                style={styles['login-premium-logo-image']}
+                resizeMode="contain"
+              />
             </View>
           </View>
+          
+          {/* Brand Name */}
+          <View style={styles['login-premium-brand-container']}>
+            <Text style={styles['login-premium-brand-name']}>New Raj Fancy</Text>
+            {/* <Text style={styles['login-premium-brand-tagline']}>NRF - Your Fashion Destination</Text> */}
+          </View>
+
           <Text style={styles['login-premium-title']}>Welcome Back</Text>
           <Text style={styles['login-premium-subtitle']}>Sign in to continue shopping</Text>
         </View>

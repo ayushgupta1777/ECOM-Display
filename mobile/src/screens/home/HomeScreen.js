@@ -250,39 +250,26 @@ const [bannerIndex, setBannerIndex] = useState(0);
           ]}
         >
           <View style={styles.topStrip}>
-
             <View style={styles.headerLeft}>
-
-
-              {/* <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>DSR</Text>
-            </View>
-            <View style={styles.logoTextContainer}>
-              <Text style={styles.brandName}>DSR Fashion</Text>
-              <Text style={styles.brandTagline}>Style Redefined</Text>
-            </View>
-          </View> */}
-
               <TouchableOpacity
                 style={styles.logoContainer}
                 onPress={toggleDrawer}
                 activeOpacity={0.7}
               >
-                <Image 
-                  source={require('../../assets/logo.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
+<View style={styles.logoCircleBorder}>
+  <Image 
+    source={require('../../assets/Logo_NRF.png')}
+    style={styles.logoImage}
+    resizeMode="cover"
+  />
+</View>
                 <View style={styles.logoTextContainer}>
-                  <Text style={styles.brandName}>DSR Fashion</Text>
-                  <Text style={styles.brandTagline}>Style Redefined</Text>
+                  <Text style={styles.brandName}>New Raj Fancy</Text>
+                  <Text style={styles.brandTagline}>NRF - Premium Jewelry</Text>
                 </View>
               </TouchableOpacity>
-
-
             </View>
-
+            
             {/* Right Icons */}
             <View style={styles.topRightIcons}>
               {/* Search */}
@@ -612,11 +599,40 @@ const styles = StyleSheet.create({
   logoTextContainer: {
     justifyContent: 'center',
   },
-    logoImage: {
-    width: 44,
-    height: 44,
-    marginRight: 12,
-  },
+  //   logoImage: {
+  //   width: 44,
+  //   height: 44,
+  //   marginRight: 12,
+  // },
+
+  
+
+  logoCircleBorder: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: '#fff',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: 12,
+  borderWidth: 2.5,
+  borderColor: '#D4AF37',
+  shadowColor: '#D4AF37',
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.3,
+  shadowRadius: 6,
+  elevation: 5,
+  overflow: 'hidden',
+},
+
+logoImage: {
+  width: 55,
+  height: 55,
+},
+
+
+
+
   logoTextContainer: {
     justifyContent: 'center',
   },
@@ -626,12 +642,25 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     letterSpacing: 0.5,
   },
+
+
   brandTagline: {
     fontSize: 11,
     fontWeight: '600',
     color: '#4F46E5',
     marginTop: 2,
   },
+
+
+//   brandTagline: {
+//   fontSize: 11,
+//   fontWeight: '600',
+//   color: '#D4AF37',
+//   marginTop: 2,
+// },
+
+
+
   headerRight: {
     flexDirection: 'row',
     gap: 16,

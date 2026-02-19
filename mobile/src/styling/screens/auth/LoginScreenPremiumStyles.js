@@ -24,21 +24,49 @@ export const styles = StyleSheet.create({
   },
   
   'login-premium-logo-container': {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   
-  'login-premium-logo-circle': {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  'login-premium-logo-wrapper': {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#0A84FF',
+    shadowColor: '#D4AF37',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
+    borderWidth: 3,
+    borderColor: '#D4AF37',
+  },
+  
+  'login-premium-logo-image': {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  
+  'login-premium-brand-container': {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  
+  'login-premium-brand-name': {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1A1A1A',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  
+  'login-premium-brand-tagline': {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D4AF37',
+    letterSpacing: 0.5,
   },
   
   'login-premium-title': {
@@ -107,7 +135,7 @@ export const styles = StyleSheet.create({
   
   'login-premium-forgot-text': {
     fontSize: 14,
-    color: '#0A84FF',
+    color: '#D4AF37',
     fontWeight: '600',
   },
   
@@ -119,11 +147,11 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0A84FF',
+    backgroundColor: '#D4AF37',
     borderRadius: 16,
     height: 56,
     marginTop: 8,
-    shadowColor: '#0A84FF',
+    shadowColor: '#D4AF37',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -137,7 +165,7 @@ export const styles = StyleSheet.create({
   'login-premium-button-text': {
     fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
+    color: '#1A1A1A',
     marginRight: 8,
     letterSpacing: 0.5,
   },
@@ -198,7 +226,7 @@ export const styles = StyleSheet.create({
   
   'login-premium-footer-link': {
     fontSize: 15,
-    color: '#0A84FF',
+    color: '#D4AF37',
     fontWeight: '700',
   },
 });

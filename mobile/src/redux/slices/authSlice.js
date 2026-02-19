@@ -68,7 +68,17 @@ const authSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
-    }
+    },
+    updateUser: (state, action) => {
+    state.user = action.payload;
+    // Optionally persist to AsyncStorage
+    // AsyncStorage.setItem('user', JSON.stringify(action.payload));
+    },
+    updateToken: (state, action) => {
+    state.token = action.payload;
+    // Optionally persist to AsyncStorage
+    // AsyncStorage.setItem('token', action.payload);
+  },
   },
   extraReducers: (builder) => {
     builder
