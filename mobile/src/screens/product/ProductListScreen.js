@@ -7,14 +7,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../../redux/slices/productSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const ProductListScreen = ({ route, navigation }) => {
-  const { 
-    categoryId, 
+  const {
+    categoryId,
     categoryName,
-    subcategoryId, 
-    subcategoryName 
+    subcategoryId,
+    subcategoryName
   } = route.params || {};
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,7 +87,7 @@ const ProductListScreen = ({ route, navigation }) => {
       <View style={styles.productImageContainer}>
         {item.images && item.images.length > 0 ? (
           <Image
-            source={{ uri: item.images[0] }}
+            source={{ uri: getImageUrl(item.images[0]) }}
             style={styles.productImage}
           />
         ) : (

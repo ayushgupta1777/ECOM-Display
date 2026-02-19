@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductDetails } from '../../redux/slices/productSlice';
 import { addToCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const screenWidth = Dimensions.get('window').width;
@@ -20,16 +20,16 @@ const screenWidth = Dimensions.get('window').width;
 const ProductDetailsScreen = ({ route, navigation }) => {
   const { productId } = route.params;
   const dispatch = useDispatch();
-  
+
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  
+
   // Image Gallery
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  
+
   // Reviews
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
@@ -236,7 +236,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
               }}
             >
               <Image
-                source={{ uri: productImages[0] }}
+                source={{ uri: getImageUrl(productImages[0]) }}
                 style={styles.mainImage}
               />
               {/* Fullscreen Icon */}
@@ -265,7 +265,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                     ]}
                   >
                     <Image
-                      source={{ uri: image }}
+                      source={{ uri: getImageUrl(image) }}
                       style={styles.thumbnailImage}
                     />
                   </TouchableOpacity>
@@ -452,7 +452,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
               {productImages.map((image, index) => (
                 <View key={index} style={{ width: screenWidth }}>
                   <Image
-                    source={{ uri: image }}
+                    source={{ uri: getImageUrl(image) }}
                     style={styles.fullscreenImage}
                     resizeMode="contain"
                   />
@@ -502,7 +502,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                       ]}
                     >
                       <Image
-                        source={{ uri: image }}
+                        source={{ uri: getImageUrl(image) }}
                         style={styles.fullscreenThumbnailImage}
                       />
                     </TouchableOpacity>

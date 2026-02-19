@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 // import * as launchImageLibrary from 'expo-image-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const BannerManagementScreen = ({ navigation }) => {
   const [banners, setBanners] = useState([]);
@@ -42,7 +42,7 @@ const BannerManagementScreen = ({ navigation }) => {
 
   // const pickImage = async () => {
   //   const { status } = await launchImageLibrary.requestMediaLibraryPermissionsAsync();
-    
+
   //   if (status !== 'granted') {
   //     Alert.alert('Permission Denied', 'Camera roll permission is required');
   //     return;
@@ -60,26 +60,26 @@ const BannerManagementScreen = ({ navigation }) => {
   // };
 
   const pickImage = async () => {
-  const options = {
-    mediaType: 'photo',
-    quality: 0.8,
-    maxWidth: 1920,
-    maxHeight: 1080,
-  };
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1920,
+      maxHeight: 1080,
+    };
 
-  launchImageLibrary(options, (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled image picker');
-    } else if (response.error) {
-      console.log('ImagePicker Error: ', response.error);
-      Alert.alert('Error', response.error);
-    } else if (response.errorCode) {
-      Alert.alert('Error', response.errorMessage || 'Failed to pick image');
-    } else if (response.assets && response.assets.length > 0) {
-      uploadImage(response.assets[0]);
-    }
-  });
-};
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+        Alert.alert('Error', response.error);
+      } else if (response.errorCode) {
+        Alert.alert('Error', response.errorMessage || 'Failed to pick image');
+      } else if (response.assets && response.assets.length > 0) {
+        uploadImage(response.assets[0]);
+      }
+    });
+  };
 
   const uploadImage = async (image) => {
     setIsUploading(true);
@@ -99,7 +99,7 @@ const BannerManagementScreen = ({ navigation }) => {
         ...prev,
         image: response.data.data.url
       }));
-      
+
       Alert.alert('Success', 'Image uploaded!');
     } catch (error) {
       Alert.alert('Error', 'Failed to upload image');
@@ -151,7 +151,7 @@ const BannerManagementScreen = ({ navigation }) => {
         await api.post('/banners', formData);
         Alert.alert('Success', 'Banner created successfully');
       }
-      
+
       setShowModal(false);
       fetchBanners();
     } catch (error) {
@@ -220,8 +220,8 @@ const BannerManagementScreen = ({ navigation }) => {
         ) : (
           banners.map((banner, index) => (
             <View key={banner._id} style={styles.bannerCard}>
-              <Image source={{ uri: banner.image }} style={styles.bannerImage} />
-              
+              <Image source={{ uri: getImageUrl(banner.image) }} style={styles.bannerImage} />
+
               <View style={styles.bannerOverlay}>
                 <View style={styles.bannerInfo}>
                   <View style={styles.bannerHeader}>
@@ -243,7 +243,7 @@ const BannerManagementScreen = ({ navigation }) => {
                       </TouchableOpacity>
                     </View>
                   </View>
-                  
+
                   {banner.link && (
                     <Text style={styles.bannerLink} numberOfLines={1}>
                       🔗 {banner.link}
@@ -298,7 +298,7 @@ const BannerManagementScreen = ({ navigation }) => {
                   {isUploading ? (
                     <ActivityIndicator color="#4F46E5" />
                   ) : formData.image ? (
-                    <Image source={{ uri: formData.image }} style={styles.uploadedImage} />
+                    <Image source={{ uri: getImageUrl(formData.image) }} style={styles.uploadedImage} />
                   ) : (
                     <>
                       <Icon name="cloud-upload-outline" size={40} color="#9CA3AF" />

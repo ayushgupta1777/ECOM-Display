@@ -6,7 +6,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const CategoryManagementScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
@@ -233,7 +233,7 @@ const CategoryManagementScreen = ({ navigation }) => {
       <View key={category._id}>
         <View style={[styles.categoryCard, isSubcategory && { marginLeft: 40, marginRight: 16 }]}>
           {category.image ? (
-            <Image source={{ uri: category.image }} style={styles.categoryImage} />
+            <Image source={{ uri: getImageUrl(category.image) }} style={styles.categoryImage} />
           ) : (
             <View style={styles.categoryImagePlaceholder}>
               <Icon name="image-outline" size={32} color="#9CA3AF" />
@@ -337,8 +337,8 @@ const CategoryManagementScreen = ({ navigation }) => {
                 {parentCategory
                   ? `Add Subcategory to "${parentCategory.name}"`
                   : editingCategory
-                  ? 'Edit Category'
-                  : 'Add New Category'}
+                    ? 'Edit Category'
+                    : 'Add New Category'}
               </Text>
               <TouchableOpacity onPress={() => setShowModal(false)}>
                 <Icon name="close" size={24} color="#6B7280" />
@@ -358,7 +358,7 @@ const CategoryManagementScreen = ({ navigation }) => {
                   {isUploading ? (
                     <ActivityIndicator color="#4F46E5" />
                   ) : formData.image ? (
-                    <Image source={{ uri: formData.image }} style={styles.uploadedImage} />
+                    <Image source={{ uri: getImageUrl(formData.image) }} style={styles.uploadedImage} />
                   ) : (
                     <>
                       <Icon name="cloud-upload-outline" size={40} color="#9CA3AF" />

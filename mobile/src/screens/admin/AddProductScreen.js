@@ -6,7 +6,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const AddProductScreen = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
@@ -16,7 +16,7 @@ const AddProductScreen = ({ navigation }) => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSubcategoryModal, setShowSubcategoryModal] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -122,7 +122,7 @@ const AddProductScreen = ({ navigation }) => {
         ...prev,
         images: [...prev.images, ...uploadedUrls]
       }));
-      
+
       Alert.alert('Success', `${uploadedUrls.length} image(s) uploaded!`);
     } catch (error) {
       Alert.alert('Error', 'Failed to upload images');
@@ -250,7 +250,7 @@ const AddProductScreen = ({ navigation }) => {
                 <View style={styles.categoryItemContent}>
                   {item.image && (
                     <Image
-                      source={{ uri: item.image }}
+                      source={{ uri: getImageUrl(item.image) }}
                       style={styles.categoryItemImage}
                     />
                   )}
@@ -313,7 +313,7 @@ const AddProductScreen = ({ navigation }) => {
                   <View style={styles.categoryItemContent}>
                     {item.image && (
                       <Image
-                        source={{ uri: item.image }}
+                        source={{ uri: getImageUrl(item.image) }}
                         style={styles.categoryItemImage}
                       />
                     )}
@@ -360,7 +360,7 @@ const AddProductScreen = ({ navigation }) => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {formData.images.map((uri, index) => (
               <View key={index} style={styles.imagePreview}>
-                <Image source={{ uri }} style={styles.previewImage} />
+                <Image source={{ uri: getImageUrl(uri) }} style={styles.previewImage} />
                 <TouchableOpacity
                   style={styles.removeImageBtn}
                   onPress={() => removeImage(index)}

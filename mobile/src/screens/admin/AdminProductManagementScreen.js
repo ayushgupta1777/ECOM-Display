@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, TextInput, Image
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const AdminProductManagementScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
@@ -12,9 +13,12 @@ const AdminProductManagementScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all'); // all, approved, pending, rejected
 
-  useEffect(() => {
-    fetchProducts();
-  }, [filter]);
+  // Refresh when screen focuses
+  useFocusEffect(
+    useCallback(() => {
+      fetchProducts();
+    }, [filter])
+  );
 
   const fetchProducts = async () => {
     try {
@@ -103,26 +107,32 @@ const AdminProductManagementScreen = ({ navigation }) => {
       </View>
 
       {/* Filters */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-      >
-        {['all', 'approved', 'pending', 'rejected'].map((status) => (
-          <TouchableOpacity
-            key={status}
-            style={[styles.filterChip, filter === status && styles.filterChipActive]}
-            onPress={() => setFilter(status)}
-          >
-            <Text style={[
-              styles.filterChipText,
-              filter === status && styles.filterChipTextActive
-            ]}>
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={{ height: 60 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+          contentContainerStyle={{ alignItems: 'center', paddingRight: 16 }}
+        >
+          {['all', 'approved', 'pending', 'rejected'].map((status) => (
+            <TouchableOpacity
+              key={status}
+              style={[
+                styles.filterChip,
+                filter === status && styles.filterChipActive
+              ]}
+              onPress={() => setFilter(status)}
+            >
+              <Text style={[
+                styles.filterChipText,
+                filter === status && styles.filterChipTextActive
+              ]}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Products List */}
       <ScrollView style={styles.productsList}>
@@ -137,15 +147,15 @@ const AdminProductManagementScreen = ({ navigation }) => {
           filteredProducts.map((product) => (
             <View key={product._id} style={styles.productCard}>
               <Image
-                source={{ uri: product.images[0] }}
+                source={{ uri: getImageUrl(product.images[0]) }}
                 style={styles.productImage}
               />
-              
+
               <View style={styles.productDetails}>
                 <Text style={styles.productTitle} numberOfLines={2}>
                   {product.title}
                 </Text>
-                
+
                 <View style={styles.productMeta}>
                   <Text style={styles.productPrice}>₹{product.price}</Text>
                   <Text style={styles.productMRP}>₹{product.mrp}</Text>
@@ -199,7 +209,7 @@ const AdminProductManagementScreen = ({ navigation }) => {
               <View style={styles.productActions}>
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => navigation.navigate('EditProduct', { productId: product._id })}
+                  onPress={() => navigation.navigate('AddProduct', { product })}
                 >
                   <Icon name="create-outline" size={20} color="#4F46E5" />
                 </TouchableOpacity>
@@ -267,18 +277,21 @@ const styles = StyleSheet.create({
     color: '#111827'
   },
   filtersContainer: {
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 16
+    paddingLeft: 16,
+    marginTop: 12,
+    marginBottom: 12,
   },
   filterChip: {
-    paddingVertical: 2,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    marginRight: 8,
-    backgroundColor: '#F3F4F6',
+    marginRight: 12,
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#E5E7EB'
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 36, // Explicit height to avoid stretching
   },
   filterChipActive: {
     backgroundColor: '#4F46E5',

@@ -29,8 +29,10 @@ const OrdersStack = () => (
 // Products Stack
 const ProductsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {/* <Stack.Screen name="ProductManagement" component={AdminProductManagementScreen} /> */}
+    <Stack.Screen name="ProductManagement" component={AdminProductManagementScreen} />
     <Stack.Screen name="AddProduct" component={AddProductScreen} />
+
+
   </Stack.Navigator>
 );
 
@@ -38,12 +40,12 @@ const ProductsStack = () => (
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="AdminProfile" component={AdminProfileScreen} />
-    <Stack.Screen name="Product" component={AdminProductManagementScreen} />
+    <Stack.Screen name="ProductManagement" component={AdminProductManagementScreen} />
     <Stack.Screen name="CategoryManagement" component={CategoryManagementScreen} />
     <Stack.Screen name="BannerManagement" component={BannerManagementScreen} />
     <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
     <Stack.Screen name="OrdersDashboard" component={OrdersDashboardScreen} />
-
+    <Stack.Screen name="AddProduct" component={AddProductScreen} />
   </Stack.Navigator>
 );
 
@@ -53,7 +55,7 @@ const AdminNavigator = () => {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-          
+
           if (route.name === 'Orders') {
             iconName = focused ? 'receipt' : 'receipt-outline';
           } else if (route.name === 'Products') {
@@ -61,7 +63,7 @@ const AdminNavigator = () => {
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
           }
-          
+
           return <Icon name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#4F46E5',

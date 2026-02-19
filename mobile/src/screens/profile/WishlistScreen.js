@@ -10,7 +10,7 @@ import {
   Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api'; // ✅ SAME api used in Product Details
+import api, { getImageUrl } from '../../services/api'; // ✅ SAME api used in Product Details
 
 const WishlistScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
@@ -53,7 +53,7 @@ const WishlistScreen = ({ navigation }) => {
         }
       >
         <Image
-          source={{ uri: item.images?.[0] }}
+          source={{ uri: getImageUrl(item.images?.[0]) }}
           style={styles.productImage}
         />
 

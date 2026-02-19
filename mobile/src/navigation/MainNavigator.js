@@ -55,7 +55,6 @@ import ProductManagementScreen from '../screens/admin/AdminProductManagementScre
 import AddProductScreen from '../screens/admin/AdminAddProductScreen';
 // import EditProductScreen from '../screens/admin/EditProductScreen';
 import ShiprocketSettingsScreen from '../screens/admin/ShiprocketSettingsScreen';
-// import ResellerManagementScreen from '../screens/admin/ResellerManagementScreen';
 import CategoryManagementScreen from '../screens/admin/CategoryManagementScreen';
 
 // ProfileScreen
@@ -79,7 +78,7 @@ const Stack = createStackNavigator();
 // HOME STACK
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }} style={{ flex: 1, backgroundColor: '#fff' }}>
-    
+
     <Stack.Screen name="HomeMain" component={HomeScreen} />
 
     <Stack.Screen name='CategoryList' component={CategoryListScreen} />
@@ -91,6 +90,7 @@ const HomeStack = () => (
 
     <Stack.Screen name="Search" component={SearchScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
+    <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
   </Stack.Navigator>
 );
 
@@ -121,29 +121,29 @@ const HomeStack = () => (
 // CART STACK - This is the ONLY cart implementation
 const CartStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}  >
-    
-    <Stack.Screen 
-      name="CartMain" 
+
+    <Stack.Screen
+      name="CartMain"
       component={CartScreen}
       options={{ title: 'Cart' }}
     />
-    <Stack.Screen 
-      name="Checkout" 
+    <Stack.Screen
+      name="Checkout"
       component={CheckoutScreen}
       options={{ title: 'Checkout' }}
     />
-    <Stack.Screen 
-      name="Payment" 
+    <Stack.Screen
+      name="Payment"
       component={PaymentScreen}
       options={{ gestureEnabled: false }}
     />
-    <Stack.Screen 
-      name="PaymentGateway" 
+    <Stack.Screen
+      name="PaymentGateway"
       component={PaymentGatewayScreen}
       options={{ gestureEnabled: false }}
     />
-    <Stack.Screen 
-      name="OrderSuccess" 
+    <Stack.Screen
+      name="OrderSuccess"
       component={OrderSuccessScreen}
       options={{ gestureEnabled: false }}
     />
@@ -156,19 +156,19 @@ const ResellerStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     {/* Main Hub */}
     <Stack.Screen name="ResellerHubMain" component={ResellerHubScreen} />
-    
+
     {/* Application */}
     <Stack.Screen name="BecomeReseller" component={ApplyResellerScreen} />
-    
+
     {/* Wallet & Money */}
     <Stack.Screen name="ResellerWallet" component={ResellerWalletScreen} />
     <Stack.Screen name="Withdraw" component={WithdrawRequestScreen} />
-    
+
     {/* History Screens */}
     <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
     <Stack.Screen name="SalesHistory" component={SalesHistoryScreen} />
     <Stack.Screen name="WithdrawHistory" component={WithdrawalHistoryScreen} />
-    
+
     {/* Product Sharing */}
     <Stack.Screen name="ShareProduct" component={ShareProductScreen} />
     <Stack.Screen name="ProductList" component={ProductListScreen} />
@@ -182,18 +182,18 @@ const OrdersStack = () => (
     <Stack.Screen name="OrdersList" component={OrdersScreen} />
     <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
     <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
-      <Stack.Screen
+    <Stack.Screen
       name="CreateSupportTicket"
       component={CreateSupportTicketScreen}
     />
 
-    <Stack.Screen 
-      name="PaymentGateway" 
+    <Stack.Screen
+      name="PaymentGateway"
       component={PaymentGatewayScreen}
       options={{ gestureEnabled: false }}
     />
-      <Stack.Screen name="InitiateReturn" component={ InitiateReturnScreen} />
-    <Stack.Screen name="MyReturns" component={MyReturnsScreen} /> 
+    <Stack.Screen name="InitiateReturn" component={InitiateReturnScreen} />
+    <Stack.Screen name="MyReturns" component={MyReturnsScreen} />
 
 
   </Stack.Navigator>
@@ -203,71 +203,71 @@ const OrdersStack = () => (
 const ProfileStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="ProfileMain" component={ProfileScreen} />
-     <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen}  />
+    <Stack.Screen name="BecomeReseller" component={BecomeResellerScreen} />
     {/*<Stack.Screen name="MyEarnings" component={MyEarningsScreen} />
     <Stack.Screen name="MySales" component={MySalesScreen} /> */}
     <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
 
     <Stack.Screen name="Wishlist" component={WishlistScreen} />
-        <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
+    <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
 
-        <Stack.Screen name="OrdersList" component={OrdersScreen} />
+    <Stack.Screen name="OrdersList" component={OrdersScreen} />
 
     <Stack.Screen name="Addresses" component={AddressesScreen} />
     {/* <Stack.Screen name="EditAddress" component={EditAddressScreen} />*/}
-    <Stack.Screen name="InitiateReturn" component={ InitiateReturnScreen} />
-    <Stack.Screen name="MyReturns" component={MyReturnsScreen} /> 
+    <Stack.Screen name="InitiateReturn" component={InitiateReturnScreen} />
+    <Stack.Screen name="MyReturns" component={MyReturnsScreen} />
 
     {/* Legal & Policy Pages */}
-    <Stack.Screen 
-      name="Terms" 
+    <Stack.Screen
+      name="Terms"
       component={TermsScreen}
-      options={{ 
-        headerShown: true, 
+      options={{
+        headerShown: true,
         title: 'Terms & Conditions',
         headerStyle: { backgroundColor: '#4F46E5' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: '600' }
       }}
     />
-    <Stack.Screen 
-      name="Privacy" 
+    <Stack.Screen
+      name="Privacy"
       component={PrivacyScreen}
-      options={{ 
-        headerShown: true, 
+      options={{
+        headerShown: true,
         title: 'Privacy Policy',
         headerStyle: { backgroundColor: '#10B981' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: '600' }
       }}
     />
-    <Stack.Screen 
-      name="Cancellation" 
+    <Stack.Screen
+      name="Cancellation"
       component={CancellationScreen}
-      options={{ 
-        headerShown: true, 
+      options={{
+        headerShown: true,
         title: 'Cancellation & Refund',
         headerStyle: { backgroundColor: '#FF9500' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: '600' }
       }}
     />
-    <Stack.Screen 
-      name="Shipping" 
+    <Stack.Screen
+      name="Shipping"
       component={ShippingScreen}
-      options={{ 
-        headerShown: true, 
+      options={{
+        headerShown: true,
         title: 'Shipping & Delivery',
         headerStyle: { backgroundColor: '#0A84FF' },
         headerTintColor: '#fff',
         headerTitleStyle: { fontWeight: '600' }
       }}
     />
-    <Stack.Screen 
-      name="ContactUs" 
+    <Stack.Screen
+      name="ContactUs"
       component={ContactUsScreen}
-      options={{ 
-        headerShown: true, 
+      options={{
+        headerShown: true,
         title: 'Contact Us',
         headerStyle: { backgroundColor: '#4F46E5' },
         headerTintColor: '#fff',
@@ -354,22 +354,22 @@ const MainNavigator = () => {
         tabBarBadgeStyle: { backgroundColor: '#10B981' }
       })}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeStack}
         options={{ title: 'Shop' }}
       />
-      
+
       {/* RESELLER HUB - Always visible, most prominent */}
-      <Tab.Screen 
-        name="ResellerHub" 
+      <Tab.Screen
+        name="ResellerHub"
         component={ResellerStack}
-        options={{ 
+        options={{
           title: 'Earn Money',
           tabBarLabel: 'Earn'
         }}
       />
-      
+
       <Tab.Screen name="Cart" component={CartStack} />
       <Tab.Screen name="Orders" component={OrdersStack} />
       <Tab.Screen name="Profile" component={ProfileStack} />

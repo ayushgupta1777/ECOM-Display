@@ -6,7 +6,7 @@ import {
 import { useSelector, useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { fetchProducts } from '../../redux/slices/productSlice';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -15,14 +15,14 @@ const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { items: products } = useSelector((state) => state.products);
-    const { totalItems } = useSelector((state) => state.cart);
+  const { totalItems } = useSelector((state) => state.cart);
 
-const [bannerIndex, setBannerIndex] = useState(0);
+  const [bannerIndex, setBannerIndex] = useState(0);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
-   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-    const [drawerVisible, setDrawerVisible] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const scrollRef = useRef(null);
 
@@ -56,7 +56,7 @@ const [bannerIndex, setBannerIndex] = useState(0);
   }, []);
 
   // Fetch data on mount
-   useEffect(() => {
+  useEffect(() => {
     dispatch(fetchProducts());
     fetchBanners();
     fetchCategories();
@@ -80,7 +80,7 @@ const [bannerIndex, setBannerIndex] = useState(0);
       console.error('Failed to fetch categories:', error);
     }
   };
-    const fetchNotificationCount = async () => {
+  const fetchNotificationCount = async () => {
     try {
       const response = await api.get('/notifications');
       setUnreadCount(response.data.data.unreadCount);
@@ -115,7 +115,7 @@ const [bannerIndex, setBannerIndex] = useState(0);
     { id: 'wallet', name: 'Wallet', icon: 'wallet-outline', route: 'Wallet' },
     { id: 'reselling', name: 'Reselling', icon: 'storefront-outline', route: 'Reselling' },
     { id: 'profile', name: 'Profile', icon: 'person-outline', route: 'Profile' },
-    { id: 'settings', name: 'Settings', icon: 'settings-outline', route: 'Settings' },
+    { id: 'settings', name: 'Settings', icon: 'settings-outline', route: 'ShiprocketSettings' },
     { id: 'support', name: 'Help & Support', icon: 'help-circle-outline', route: 'Support' },
   ];
 
@@ -145,15 +145,20 @@ const [bannerIndex, setBannerIndex] = useState(0);
 
   const handleMenuPress = (route) => {
     closeDrawer();
-    navigation.navigate(route);
+    if (route === 'ShiprocketSettings') {
+      // Check for admin role would be ideal here if not already handled by navigation
+      navigation.navigate('ShiprocketSettings');
+    } else {
+      navigation.navigate(route);
+    }
   };
 
 
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-    <View style={styles.container}>
-      {/* TOP STRIP - Like Pyrite Fashion */}
+      <View style={styles.container}>
+        {/* TOP STRIP - Like Pyrite Fashion */}
 
         {/* SIDE DRAWER */}
         {drawerVisible && (
@@ -256,20 +261,20 @@ const [bannerIndex, setBannerIndex] = useState(0);
                 onPress={toggleDrawer}
                 activeOpacity={0.7}
               >
-<View style={styles.logoCircleBorder}>
-  <Image 
-    source={require('../../assets/Logo_NRF.png')}
-    style={styles.logoImage}
-    resizeMode="cover"
-  />
-</View>
+                <View style={styles.logoCircleBorder}>
+                  <Image
+                    source={require('../../assets/Logo_NRF.png')}
+                    style={styles.logoImage}
+                    resizeMode="cover"
+                  />
+                </View>
                 <View style={styles.logoTextContainer}>
                   <Text style={styles.brandName}>New Raj Fancy</Text>
                   <Text style={styles.brandTagline}>NRF - Premium Jewelry</Text>
                 </View>
               </TouchableOpacity>
             </View>
-            
+
             {/* Right Icons */}
             <View style={styles.topRightIcons}>
               {/* Search */}
@@ -307,62 +312,62 @@ const [bannerIndex, setBannerIndex] = useState(0);
           </View>
         </Animated.View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* BANNER SLIDER */}
-        <View style={styles.bannerContainer}>
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / width);
-              setBannerIndex(index);
-            }}
-          >
-            {banners.map((banner) => (
-              <TouchableOpacity 
-                key={banner.id}
-                style={styles.bannerSlide}
-                activeOpacity={0.9}
-              >
-                <Image 
-                  source={{ uri: banner.image }}
-                  style={styles.bannerImage}
-                  resizeMode="cover"
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* BANNER SLIDER */}
+          <View style={styles.bannerContainer}>
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                setBannerIndex(index);
+              }}
+            >
+              {banners.map((banner) => (
+                <TouchableOpacity
+                  key={banner.id}
+                  style={styles.bannerSlide}
+                  activeOpacity={0.9}
+                >
+                  <Image
+                    source={{ uri: getImageUrl(banner.image) }}
+                    style={styles.bannerImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Dots Indicator */}
+            <View style={styles.dotsContainer}>
+              {banners.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    bannerIndex === index && styles.dotActive
+                  ]}
                 />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Dots Indicator */}
-          <View style={styles.dotsContainer}>
-            {banners.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  bannerIndex === index && styles.dotActive
-                ]}
-              />
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
 
-         <View style={styles.categoriesSection}>
+          <View style={styles.categoriesSection}>
             {categories.map((item) => (
               <TouchableOpacity
                 key={item._id}
                 style={styles.categoryGraphic}
-                onPress={() => navigation.navigate('SubcategoryList', { 
-                  categoryId: item._id, 
-                  categoryName: item.name 
+                onPress={() => navigation.navigate('SubcategoryList', {
+                  categoryId: item._id,
+                  categoryName: item.name
                 })}
                 activeOpacity={0.8}
               >
                 {item.image ? (
                   <Image
-                    source={{ uri: item.image }}
+                    source={{ uri: getImageUrl(item.image) }}
                     style={styles.categoryImage}
                     resizeMode="cover"
                   />
@@ -373,7 +378,7 @@ const [bannerIndex, setBannerIndex] = useState(0);
                 )}
 
                 {/* Overlay Text */}
-                
+
                 {/* <View style={styles.categoryOverlay}>
                   <Text style={styles.categoryName}>{item.name}</Text>
                   <Text style={styles.categorySubtext}>Exclusive Collections</Text>
@@ -392,135 +397,135 @@ const [bannerIndex, setBannerIndex] = useState(0);
             ))}
           </View>
 
-          
-        {/* FEATURED PRODUCTS */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Products</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('ProductList')}>
-              <Text style={styles.sectionLink}>View All →</Text>
-            </TouchableOpacity>
-          </View>
 
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.productsScroll}
-          >
-            {products.slice(0, 10).map((product) => (
-              <TouchableOpacity
-                key={product._id}
-                style={styles.productCard}
-                onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
-              >
-                <Image 
-                  source={{ uri: product.images[0] }}
-                  style={styles.productImage}
-                />
-                
-                {product.discount > 0 && (
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountText}>{product.discount}% OFF</Text>
-                  </View>
-                )}
+          {/* FEATURED PRODUCTS */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured Products</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('ProductList')}>
+                <Text style={styles.sectionLink}>View All →</Text>
+              </TouchableOpacity>
+            </View>
 
-                <View style={styles.productInfo}>
-                  <Text style={styles.productTitle} numberOfLines={2}>
-                    {product.title}
-                  </Text>
-                  <View style={styles.productPriceRow}>
-                    <Text style={styles.productPrice}>₹{product.price}</Text>
-                    {product.mrp > product.price && (
-                      <Text style={styles.productMRP}>₹{product.mrp}</Text>
-                    )}
-                  </View>
-                  
-                  {product.averageRating > 0 && (
-                    <View style={styles.ratingRow}>
-                      <Icon name="star" size={12} color="#FFB800" />
-                      <Text style={styles.ratingText}>{product.averageRating.toFixed(1)}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.productsScroll}
+            >
+              {products.slice(0, 10).map((product) => (
+                <TouchableOpacity
+                  key={product._id}
+                  style={styles.productCard}
+                  onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
+                >
+                  <Image
+                    source={{ uri: getImageUrl(product.images[0]) }}
+                    style={styles.productImage}
+                  />
+
+                  {product.discount > 0 && (
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountText}>{product.discount}% OFF</Text>
                     </View>
                   )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
 
-        {/* PROMOTIONAL POSTER */}
-        {/* <TouchableOpacity style={styles.promoCard} activeOpacity={0.9}>
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productTitle} numberOfLines={2}>
+                      {product.title}
+                    </Text>
+                    <View style={styles.productPriceRow}>
+                      <Text style={styles.productPrice}>₹{product.price}</Text>
+                      {product.mrp > product.price && (
+                        <Text style={styles.productMRP}>₹{product.mrp}</Text>
+                      )}
+                    </View>
+
+                    {product.averageRating > 0 && (
+                      <View style={styles.ratingRow}>
+                        <Icon name="star" size={12} color="#FFB800" />
+                        <Text style={styles.ratingText}>{product.averageRating.toFixed(1)}</Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* PROMOTIONAL POSTER */}
+          {/* <TouchableOpacity style={styles.promoCard} activeOpacity={0.9}>
           <Image 
             source={{ uri: 'https://example.com/promo.jpg' }}
             style={styles.promoImage}
           />
         </TouchableOpacity> */}
 
-        {/* NEW ARRIVALS */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>New Arrivals</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('ProductList', { sort: '-createdAt' })}>
-              <Text style={styles.sectionLink}>View All →</Text>
-            </TouchableOpacity>
+          {/* NEW ARRIVALS */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>New Arrivals</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('ProductList', { sort: '-createdAt' })}>
+                <Text style={styles.sectionLink}>View All →</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.productsGrid}>
+              {products.slice(0, 6).map((product) => (
+                <TouchableOpacity
+                  key={product._id}
+                  style={styles.gridProductCard}
+                  onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
+                >
+                  <Image
+                    source={{ uri: getImageUrl(product.images[0]) }}
+                    style={styles.gridProductImage}
+                  />
+                  <Text style={styles.gridProductTitle} numberOfLines={2}>
+                    {product.title}
+                  </Text>
+                  <Text style={styles.gridProductPrice}>₹{product.price}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
-          <View style={styles.productsGrid}>
-            {products.slice(0, 6).map((product) => (
+          {/* TOP SELLERS */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Top Sellers</Text>
+
+            {products.slice(0, 5).map((product, index) => (
               <TouchableOpacity
                 key={product._id}
-                style={styles.gridProductCard}
+                style={styles.topSellerCard}
                 onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
               >
-                <Image 
-                  source={{ uri: product.images[0] }}
-                  style={styles.gridProductImage}
+                <View style={styles.topSellerRank}>
+                  <Text style={styles.topSellerRankText}>#{index + 1}</Text>
+                </View>
+                <Image
+                  source={{ uri: getImageUrl(product.images[0]) }}
+                  style={styles.topSellerImage}
                 />
-                <Text style={styles.gridProductTitle} numberOfLines={2}>
-                  {product.title}
-                </Text>
-                <Text style={styles.gridProductPrice}>₹{product.price}</Text>
+                <View style={styles.topSellerInfo}>
+                  <Text style={styles.topSellerTitle} numberOfLines={2}>
+                    {product.title}
+                  </Text>
+                  <View style={styles.topSellerPriceRow}>
+                    <Text style={styles.topSellerPrice}>₹{product.price}</Text>
+                    <View style={styles.topSellerRating}>
+                      <Icon name="star" size={14} color="#FFB800" />
+                      <Text style={styles.topSellerRatingText}>
+                        {product.averageRating?.toFixed(1) || '0.0'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
 
-        {/* TOP SELLERS */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Sellers</Text>
-          
-          {products.slice(0, 5).map((product, index) => (
-            <TouchableOpacity
-              key={product._id}
-              style={styles.topSellerCard}
-              onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
-            >
-              <View style={styles.topSellerRank}>
-                <Text style={styles.topSellerRankText}>#{index + 1}</Text>
-              </View>
-              <Image 
-                source={{ uri: product.images[0] }}
-                style={styles.topSellerImage}
-              />
-              <View style={styles.topSellerInfo}>
-                <Text style={styles.topSellerTitle} numberOfLines={2}>
-                  {product.title}
-                </Text>
-                <View style={styles.topSellerPriceRow}>
-                  <Text style={styles.topSellerPrice}>₹{product.price}</Text>
-                  <View style={styles.topSellerRating}>
-                    <Icon name="star" size={14} color="#FFB800" />
-                    <Text style={styles.topSellerRatingText}>
-                      {product.averageRating?.toFixed(1) || '0.0'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* SHOP BY COLLECTION */}
-        {/* <View style={styles.section}>
+          {/* SHOP BY COLLECTION */}
+          {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Shop by Collection</Text>
           
           <ScrollView 
@@ -544,17 +549,17 @@ const [bannerIndex, setBannerIndex] = useState(0);
           </ScrollView>
         </View> */}
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </View>
-  
-</SafeAreaView>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  
+
   // Top Strip - Like Pyrite Fashion
   topStrip: {
     flexDirection: 'row',
@@ -571,7 +576,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4
   },
 
-  
+
 
 
   headerLeft: {
@@ -605,30 +610,30 @@ const styles = StyleSheet.create({
   //   marginRight: 12,
   // },
 
-  
+
 
   logoCircleBorder: {
-  width: 50,
-  height: 50,
-  borderRadius: 25,
-  backgroundColor: '#fff',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginRight: 12,
-  borderWidth: 2.5,
-  borderColor: '#D4AF37',
-  shadowColor: '#D4AF37',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.3,
-  shadowRadius: 6,
-  elevation: 5,
-  overflow: 'hidden',
-},
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 2.5,
+    borderColor: '#D4AF37',
+    shadowColor: '#D4AF37',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+    overflow: 'hidden',
+  },
 
-logoImage: {
-  width: 55,
-  height: 55,
-},
+  logoImage: {
+    width: 55,
+    height: 55,
+  },
 
 
 
@@ -652,12 +657,12 @@ logoImage: {
   },
 
 
-//   brandTagline: {
-//   fontSize: 11,
-//   fontWeight: '600',
-//   color: '#D4AF37',
-//   marginTop: 2,
-// },
+  //   brandTagline: {
+  //   fontSize: 11,
+  //   fontWeight: '600',
+  //   color: '#D4AF37',
+  //   marginTop: 2,
+  // },
 
 
 
@@ -847,8 +852,8 @@ logoImage: {
     fontWeight: '700',
     color: '#fff'
   },
-  
-   // Banner Slider - INCREASED HEIGHT FROM 200 TO 280
+
+  // Banner Slider - INCREASED HEIGHT FROM 200 TO 280
   bannerContainer: {
     height: 280,
     position: 'relative'
@@ -890,7 +895,7 @@ logoImage: {
     paddingHorizontal: 0
   },
 
-  
+
   categoryGraphic: {
     height: 280,
     marginBottom: 12,
@@ -950,7 +955,7 @@ logoImage: {
     justifyContent: 'center',
     alignItems: 'center'
   },
-  
+
   // Sections
   section: {
     paddingHorizontal: 16,
@@ -972,7 +977,7 @@ logoImage: {
     fontWeight: '600',
     color: '#4F46E5'
   },
-  
+
   // Products
   productsScroll: {
     gap: 12
@@ -1039,7 +1044,7 @@ logoImage: {
     fontWeight: '600',
     color: '#333'
   },
-  
+
   // Promo Card
   promoCard: {
     height: 150,
@@ -1052,7 +1057,7 @@ logoImage: {
     width: '100%',
     height: '100%'
   },
-  
+
   // Grid Products
   productsGrid: {
     flexDirection: 'row',
@@ -1086,7 +1091,7 @@ logoImage: {
     paddingHorizontal: 12,
     paddingBottom: 12
   },
-  
+
   // Top Sellers
   topSellerCard: {
     flexDirection: 'row',
@@ -1147,7 +1152,7 @@ logoImage: {
     fontWeight: '600',
     color: '#333'
   },
-  
+
   // Collections
   collectionsScroll: {
     gap: 12

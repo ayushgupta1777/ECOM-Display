@@ -6,9 +6,12 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
-const AddProductScreen = ({ navigation }) => {
+const AddProductScreen = ({ navigation, route }) => {
+  const { product } = route.params || {};
+  const isEditMode = !!product;
+
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +19,7 @@ const AddProductScreen = ({ navigation }) => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSubcategoryModal, setShowSubcategoryModal] = useState(false);
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -30,7 +33,24 @@ const AddProductScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    if (isEditMode) {
+      setFormData({
+        title: product.title || '',
+        description: product.description || '',
+        category: product.category?._id || product.category || '',
+        subcategory: product.subcategory?._id || product.subcategory || '',
+        price: String(product.price || ''),
+        mrp: String(product.mrp || ''),
+        stock: String(product.stock || ''),
+        images: product.images || []
+      });
+      // If category exists, fetch subcategories
+      if (product.category) {
+        const catId = product.category._id || product.category;
+        fetchSubcategories(catId);
+      }
+    }
+  }, [product]);
 
   const fetchCategories = async () => {
     try {
@@ -124,7 +144,7 @@ const AddProductScreen = ({ navigation }) => {
         ...prev,
         images: [...prev.images, ...uploadedUrls]
       }));
-      
+
       Alert.alert('Success', `${uploadedUrls.length} image(s) uploaded!`);
     } catch (error) {
       Alert.alert('Error', 'Failed to upload images');
@@ -197,19 +217,23 @@ const AddProductScreen = ({ navigation }) => {
         subcategory: formData.subcategory || null
       };
 
-      const response = await api.post('/admin/products', productData);
-
-      if (response.data.success) {
-        Alert.alert('Success', 'Product added successfully!', [
-          {
-            text: 'Add Another',
-            onPress: () => resetForm()
-          },
-          {
-            text: 'Go Back',
-            onPress: () => navigation.goBack()
-          }
-        ]);
+      if (isEditMode) {
+        // UPDATE EXISTING PRODUCT
+        const response = await api.put(`/admin/products/${product._id}`, productData);
+        if (response.data.success) {
+          Alert.alert('Success', 'Product updated successfully!', [
+            { text: 'OK', onPress: () => navigation.goBack() }
+          ]);
+        }
+      } else {
+        // CREATE NEW PRODUCT
+        const response = await api.post('/admin/products', productData);
+        if (response.data.success) {
+          Alert.alert('Success', 'Product added successfully!', [
+            { text: 'Add Another', onPress: () => resetForm() },
+            { text: 'Go Back', onPress: () => navigation.goBack() }
+          ]);
+        }
       }
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || 'Failed to add product');
@@ -252,7 +276,7 @@ const AddProductScreen = ({ navigation }) => {
                 <View style={styles.categoryItemContent}>
                   {item.image && (
                     <Image
-                      source={{ uri: item.image }}
+                      source={{ uri: getImageUrl(item.image) }}
                       style={styles.categoryItemImage}
                     />
                   )}
@@ -315,7 +339,7 @@ const AddProductScreen = ({ navigation }) => {
                   <View style={styles.categoryItemContent}>
                     {item.image && (
                       <Image
-                        source={{ uri: item.image }}
+                        source={{ uri: getImageUrl(item.image) }}
                         style={styles.categoryItemImage}
                       />
                     )}
@@ -342,7 +366,7 @@ const AddProductScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="chevron-back" size={24} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add New Product</Text>
+        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Product' : 'Add New Product'}</Text>
         <TouchableOpacity onPress={resetForm}>
           <Icon name="refresh" size={24} color="#4F46E5" />
         </TouchableOpacity>
@@ -362,7 +386,7 @@ const AddProductScreen = ({ navigation }) => {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {formData.images.map((uri, index) => (
               <View key={index} style={styles.imagePreview}>
-                <Image source={{ uri }} style={styles.previewImage} />
+                <Image source={{ uri: getImageUrl(uri) }} style={styles.previewImage} />
                 <TouchableOpacity
                   style={styles.removeImageBtn}
                   onPress={() => removeImage(index)}
@@ -541,7 +565,7 @@ const AddProductScreen = ({ navigation }) => {
           ) : (
             <>
               <Icon name="checkmark" size={22} color="#fff" />
-              <Text style={styles.submitBtnText}>Add Product</Text>
+              <Text style={styles.submitBtnText}>{isEditMode ? 'Update Product' : 'Add Product'}</Text>
             </>
           )}
         </TouchableOpacity>

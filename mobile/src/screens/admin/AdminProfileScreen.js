@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert
+  StyleSheet, Alert, ActivityIndicator
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -9,7 +9,9 @@ import { logout } from '../../redux/slices/authSlice';
 
 const AdminProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  // Safe access to auth state
+  const auth = useSelector((state) => state.auth) || {};
+  const user = auth.user;
 
   const handleLogout = () => {
     Alert.alert(
@@ -33,7 +35,7 @@ const AdminProfileScreen = ({ navigation }) => {
         {
           icon: 'cube-outline',
           label: 'Products',
-          screen: 'Product',
+          screen: 'ProductManagement', // Changed to match navigator
           color: '#4F46E5'
         },
         {
@@ -53,13 +55,7 @@ const AdminProfileScreen = ({ navigation }) => {
           label: 'Orders',
           screen: 'OrdersDashboard',
           color: '#10B981'
-        },
-        // {
-        //   icon: 'people-outline',
-        //   label: 'Resellers',
-        //   screen: 'ResellerManagement',
-        //   color: '#F59E0B'
-        // }
+        }
       ]
     },
     {
@@ -82,6 +78,15 @@ const AdminProfileScreen = ({ navigation }) => {
     }
   ];
 
+  if (!user) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#4F46E5" />
+        <Text style={{ marginTop: 10, color: '#6B7280' }}>Loading profile...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -89,13 +94,14 @@ const AdminProfileScreen = ({ navigation }) => {
         <View style={styles.avatarContainer}>
           <Icon name="shield-checkmark" size={40} color="#fff" />
         </View>
-        <Text style={styles.userName}>{user?.name}</Text>
-        <Text style={styles.userEmail}>{user?.email}</Text>
+        <Text style={styles.userName}>{user.name || 'Admin User'}</Text>
+        <Text style={styles.userEmail}>{user.email || 'N/A'}</Text>
         <View style={styles.roleBadge}>
           <Icon name="star" size={12} color="#fff" />
           <Text style={styles.roleText}>Administrator</Text>
         </View>
       </View>
+
 
       <ScrollView style={styles.content}>
         {menuSections.map((section, sectionIndex) => (
