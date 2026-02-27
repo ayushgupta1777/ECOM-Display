@@ -223,7 +223,7 @@ const HomeScreen = ({ navigation }) => {
                   activeOpacity={0.7}
                 >
                   <Image
-                    source={category.image}
+                    source={{ uri: getImageUrl(category.image) }}
                     style={styles.drawerCategoryImage}
                   />
                   <Text style={styles.drawerCategoryText}>{category.name}</Text>

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -51,7 +51,7 @@ const SubcategoryListScreen = ({ route }) => {
           <View style={styles.imageBorder}>
             {item.image ? (
               <Image
-                source={{ uri: item.image }}
+                source={{ uri: getImageUrl(item.image) }}
                 style={styles.productImage}
                 resizeMode="cover"
               />
@@ -67,7 +67,7 @@ const SubcategoryListScreen = ({ route }) => {
         <View style={styles.textSection}>
           <Text style={styles.subcategoryTitle}>{item.name}</Text>
           <Text style={styles.exclusiveText}>Exclusive Collections</Text>
-          
+
           {/* Explore More Button */}
           <View style={styles.exploreButton}>
             <Text style={styles.exploreButtonText}>Explore More</Text>
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
   },
-  
+
   // Premium Card Styles - Like Client Reference
   subcategoryCard: {
     marginBottom: 20,
@@ -180,11 +180,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 180,
   },
-  
+
   // Image Section (Left Side)
   imageSection: {
     width: width * 0.4,
-   
+
     padding: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
+
   // Text Section (Right Side)
   textSection: {
     flex: 1,
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     letterSpacing: 0.5,
   },
-  
+
   // Empty State
   emptyContainer: {
     flex: 1,

@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator, FlatList
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CategoryListScreen = ({ navigation, route }) => {
@@ -77,7 +77,7 @@ const CategoryListScreen = ({ navigation, route }) => {
         {/* Category Banner */}
         {category?.image && (
           <Image
-            source={{ uri: category.image }}
+            source={{ uri: getImageUrl(category.image) }}
             style={styles.categoryBanner}
             resizeMode="cover"
           />
@@ -124,7 +124,7 @@ const CategoryListScreen = ({ navigation, route }) => {
                 >
                   {item.image ? (
                     <Image
-                      source={{ uri: item.image }}
+                      source={{ uri: getImageUrl(item.image) }}
                       style={styles.subcategoryImage}
                     />
                   ) : (
