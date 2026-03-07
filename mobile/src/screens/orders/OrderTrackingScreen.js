@@ -19,6 +19,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import api from '../../services/api';
+import CustomHeader from '../../components/CustomHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -101,233 +102,236 @@ const OrderTrackingScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        {/* Header Card with Gradient */}
-        <LinearGradient
-          colors={['#4F46E5', '#7C3AED']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <View style={styles.orderHeader}>
-              <View>
-                <Text style={styles.orderNo}>Order #{order.orderNo}</Text>
-                <Text style={styles.orderDate}>
-                  {new Date(order.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Icon name={getStatusIcon(order.status)} size={16} color="#FFFFFF" />
-                <Text style={[styles.statusText, { color: '#FFFFFF' }]}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                </Text>
-              </View>
-            </View>
-
-            {/* Progress Bar */}
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <Animated.View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${progressWidth}%`,
-                      backgroundColor: getStatusColor(order.status)
-                    }
-                  ]}
-                />
-              </View>
-              <Text style={styles.progressText}>
-                {Math.round(progressWidth)}% Complete
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-
-        {/* Tracking Details Card */}
-        <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Tracking Details</Text>
-
-          {order.trackingNumber && (
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Icon name="qr-code-outline" size={24} color="#4F46E5" />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Tracking Number</Text>
-                <Text style={styles.detailValue}>{order.trackingNumber}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.copyButton}
-                onPress={() => {/* Copy to clipboard */}}
-              >
-                <Icon name="copy-outline" size={20} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {order.courierName && (
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Icon name="business-outline" size={24} color="#4F46E5" />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Courier Partner</Text>
-                <Text style={styles.detailValue}>{order.courierName}</Text>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.detailRow}>
-            <View style={styles.detailIcon}>
-              <Icon name="location-outline" size={24} color="#4F46E5" />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Delivery Address</Text>
-              <Text style={styles.detailValue}>
-                {order.shippingAddress?.street}, {order.shippingAddress?.city}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Enhanced Timeline */}
-        <View style={styles.timelineCard}>
-          <Text style={styles.sectionTitle}>Order Timeline</Text>
-
-          {order.trackingEvents && order.trackingEvents.length > 0 ? (
-            <View style={styles.timeline}>
-              {order.trackingEvents.map((event, index) => (
-                <View key={index} style={styles.timelineEvent}>
-                  <View style={styles.timelineLeft}>
-                    <View style={[
-                      styles.timelineDot,
-                      index === 0 && styles.timelineDotActive
-                    ]}>
-                      <Icon
-                        name={index === 0 ? 'radio-button-on' : 'radio-button-off'}
-                        size={16}
-                        color={index === 0 ? '#4F46E5' : '#D1D5DB'}
-                      />
-                    </View>
-                    {index !== order.trackingEvents.length - 1 && (
-                      <View style={styles.timelineConnector} />
-                    )}
-                  </View>
-
-                  <View style={styles.timelineRight}>
-                    <View style={styles.eventHeader}>
-                      <Text style={styles.eventStatus}>{event.status}</Text>
-                      <Text style={styles.eventTime}>
-                        {new Date(event.timestamp).toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </Text>
-                    </View>
-                    <Text style={styles.eventDescription}>{event.description}</Text>
-                    {event.location && (
-                      <View style={styles.eventLocation}>
-                        <Icon name="location-outline" size={14} color="#6B7280" />
-                        <Text style={styles.eventLocationText}>{event.location}</Text>
-                      </View>
-                    )}
-                  </View>
+    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+      <CustomHeader title="Track Order" showBack={true} />
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+          {/* Header Card with Gradient */}
+          <LinearGradient
+            colors={['#4F46E5', '#7C3AED']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.headerGradient}
+          >
+            <View style={styles.headerContent}>
+              <View style={styles.orderHeader}>
+                <View>
+                  <Text style={styles.orderNo}>Order #{order.orderNo}</Text>
+                  <Text style={styles.orderDate}>
+                    {new Date(order.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </Text>
                 </View>
-              ))}
-            </View>
-          ) : (
-            <View style={styles.noTracking}>
-              <View style={styles.noTrackingIcon}>
-                <Icon name="information-circle-outline" size={48} color="#9CA3AF" />
+                <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                  <Icon name={getStatusIcon(order.status)} size={16} color="#FFFFFF" />
+                  <Text style={[styles.statusText, { color: '#FFFFFF' }]}>
+                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.noTrackingTitle}>No Tracking Updates Yet</Text>
-              <Text style={styles.noTrackingText}>
-                Tracking information will appear once your order is shipped
-              </Text>
-            </View>
-          )}
-        </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsCard}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={fetchTracking}
-          >
-            <LinearGradient
-              colors={['#4F46E5', '#7C3AED']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.primaryButtonGradient}
-            >
-              <Icon name="refresh" size={20} color="#FFFFFF" />
-              <Text style={styles.primaryButtonText}>Refresh Status</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {order.trackingNumber && (
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => {
-                const trackingUrl = `https://shiprocket.co/tracking/${order.trackingNumber}`;
-                Linking.openURL(trackingUrl);
-              }}
-            >
-              <Icon name="open-outline" size={20} color="#4F46E5" />
-              <Text style={styles.secondaryButtonText}>Track on Website</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={styles.outlineButton}
-            onPress={() => navigation.navigate('OrderDetails', { orderId })}
-          >
-            <Icon name="document-text-outline" size={20} color="#6B7280" />
-            <Text style={styles.outlineButtonText}>View Order Details</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Delivery Success Card */}
-        {order.status === 'delivered' && (
-          <View style={styles.deliveryCard}>
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              style={styles.deliveryGradient}
-            >
-              <View style={styles.deliveryContent}>
-                <Icon name="checkmark-circle" size={48} color="#FFFFFF" />
-                <Text style={styles.deliveryTitle}>Delivered Successfully!</Text>
-                <Text style={styles.deliveryDate}>
-                  Delivered on {new Date(order.deliveredAt).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <Animated.View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${progressWidth}%`,
+                        backgroundColor: getStatusColor(order.status)
+                      }
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressText}>
+                  {Math.round(progressWidth)}% Complete
                 </Text>
+              </View>
+            </View>
+          </LinearGradient>
 
+          {/* Tracking Details Card */}
+          <View style={styles.detailsCard}>
+            <Text style={styles.sectionTitle}>Tracking Details</Text>
+
+            {order.trackingNumber && (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Icon name="qr-code-outline" size={24} color="#4F46E5" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Tracking Number</Text>
+                  <Text style={styles.detailValue}>{order.trackingNumber}</Text>
+                </View>
                 <TouchableOpacity
-                  style={styles.returnButton}
-                  onPress={() => navigation.navigate('InitiateReturn', { order })}
+                  style={styles.copyButton}
+                  onPress={() => {/* Copy to clipboard */ }}
                 >
-                  <Icon name="arrow-back-circle-outline" size={20} color="#FFFFFF" />
-                  <Text style={styles.returnButtonText}>Request Return</Text>
+                  <Icon name="copy-outline" size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            )}
+
+            {order.courierName && (
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Icon name="business-outline" size={24} color="#4F46E5" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Courier Partner</Text>
+                  <Text style={styles.detailValue}>{order.courierName}</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Icon name="location-outline" size={24} color="#4F46E5" />
+              </View>
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Delivery Address</Text>
+                <Text style={styles.detailValue}>
+                  {order.shippingAddress?.street}, {order.shippingAddress?.city}
+                </Text>
+              </View>
+            </View>
           </View>
-        )}
-      </Animated.View>
-    </ScrollView>
+
+          {/* Enhanced Timeline */}
+          <View style={styles.timelineCard}>
+            <Text style={styles.sectionTitle}>Order Timeline</Text>
+
+            {order.trackingEvents && order.trackingEvents.length > 0 ? (
+              <View style={styles.timeline}>
+                {order.trackingEvents.map((event, index) => (
+                  <View key={index} style={styles.timelineEvent}>
+                    <View style={styles.timelineLeft}>
+                      <View style={[
+                        styles.timelineDot,
+                        index === 0 && styles.timelineDotActive
+                      ]}>
+                        <Icon
+                          name={index === 0 ? 'radio-button-on' : 'radio-button-off'}
+                          size={16}
+                          color={index === 0 ? '#4F46E5' : '#D1D5DB'}
+                        />
+                      </View>
+                      {index !== order.trackingEvents.length - 1 && (
+                        <View style={styles.timelineConnector} />
+                      )}
+                    </View>
+
+                    <View style={styles.timelineRight}>
+                      <View style={styles.eventHeader}>
+                        <Text style={styles.eventStatus}>{event.status}</Text>
+                        <Text style={styles.eventTime}>
+                          {new Date(event.timestamp).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </Text>
+                      </View>
+                      <Text style={styles.eventDescription}>{event.description}</Text>
+                      {event.location && (
+                        <View style={styles.eventLocation}>
+                          <Icon name="location-outline" size={14} color="#6B7280" />
+                          <Text style={styles.eventLocationText}>{event.location}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.noTracking}>
+                <View style={styles.noTrackingIcon}>
+                  <Icon name="information-circle-outline" size={48} color="#9CA3AF" />
+                </View>
+                <Text style={styles.noTrackingTitle}>No Tracking Updates Yet</Text>
+                <Text style={styles.noTrackingText}>
+                  Tracking information will appear once your order is shipped
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionsCard}>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={fetchTracking}
+            >
+              <LinearGradient
+                colors={['#4F46E5', '#7C3AED']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.primaryButtonGradient}
+              >
+                <Icon name="refresh" size={20} color="#FFFFFF" />
+                <Text style={styles.primaryButtonText}>Refresh Status</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {order.trackingNumber && (
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => {
+                  const trackingUrl = `https://shiprocket.co/tracking/${order.trackingNumber}`;
+                  Linking.openURL(trackingUrl);
+                }}
+              >
+                <Icon name="open-outline" size={20} color="#4F46E5" />
+                <Text style={styles.secondaryButtonText}>Track on Website</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.outlineButton}
+              onPress={() => navigation.navigate('OrderDetails', { orderId })}
+            >
+              <Icon name="document-text-outline" size={20} color="#6B7280" />
+              <Text style={styles.outlineButtonText}>View Order Details</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Delivery Success Card */}
+          {order.status === 'delivered' && (
+            <View style={styles.deliveryCard}>
+              <LinearGradient
+                colors={['#10B981', '#059669']}
+                style={styles.deliveryGradient}
+              >
+                <View style={styles.deliveryContent}>
+                  <Icon name="checkmark-circle" size={48} color="#FFFFFF" />
+                  <Text style={styles.deliveryTitle}>Delivered Successfully!</Text>
+                  <Text style={styles.deliveryDate}>
+                    Delivered on {new Date(order.deliveredAt).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.returnButton}
+                    onPress={() => navigation.navigate('InitiateReturn', { order })}
+                  >
+                    <Icon name="arrow-back-circle-outline" size={20} color="#FFFFFF" />
+                    <Text style={styles.returnButtonText}>Request Return</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+          )}
+        </Animated.View>
+      </ScrollView>
+    </View>
   );
 };
 

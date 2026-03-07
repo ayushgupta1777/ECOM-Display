@@ -9,91 +9,88 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const PrivacyScreen = () => {
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Icon name="shield-checkmark" size={48} color="#10B981" />
-        <Text style={styles.title}>Privacy Policy</Text>
-        <Text style={styles.subtitle}>Your privacy is important to us</Text>
-      </View>
+      {/* Header removed and moved to Navigator */}
+      <View style={{ height: 20 }} />
 
       <View style={styles.content}>
-        <Section 
+        <Section
           icon="information-circle"
           iconColor="#0A84FF"
           title="Information We Collect"
           content="We collect information that you provide directly to us, including your name, email address, phone number, delivery address, and payment information. We also collect information about your device, usage patterns, and browsing behavior within our app."
         />
 
-        <Section 
+        <Section
           icon="compass"
           iconColor="#5E5CE6"
           title="How We Use Your Information"
           content="We use the information we collect to: process your orders and payments, provide customer support, send you updates about your orders, improve our services, personalize your experience, and send promotional communications (with your consent)."
         />
 
-        <Section 
+        <Section
           icon="share-social"
           iconColor="#FF9500"
           title="Information Sharing"
           content="We do not sell your personal information. We may share your information with: service providers who help us operate our business, payment processors, delivery partners, and law enforcement when required by law. All third parties are contractually obligated to protect your data."
         />
 
-        <Section 
+        <Section
           icon="lock-closed"
           iconColor="#FF3B30"
           title="Data Security"
           content="We implement industry-standard security measures to protect your personal information. This includes encryption of sensitive data, secure servers, regular security audits, and restricted access to personal information. However, no method of transmission over the internet is 100% secure."
         />
 
-        <Section 
+        <Section
           icon="card"
           iconColor="#34C759"
           title="Payment Information"
           content="Your payment information is processed securely through PCI-compliant payment gateways. We do not store complete credit card details on our servers. Payment processors may retain certain payment information in accordance with their own privacy policies."
         />
 
-        <Section 
+        <Section
           icon="analytics"
           iconColor="#AF52DE"
           title="Cookies & Tracking"
           content="We use cookies and similar tracking technologies to enhance your experience, remember your preferences, and analyze usage patterns. You can control cookie settings through your device preferences, though some features may not function properly without them."
         />
 
-        <Section 
+        <Section
           icon="people"
           iconColor="#0A84FF"
           title="Your Rights"
           content="You have the right to: access your personal data, request corrections to your data, request deletion of your account and data, opt-out of marketing communications, and export your data. Contact our support team to exercise these rights."
         />
 
-        <Section 
+        <Section
           icon="location"
           iconColor="#FF9500"
           title="Location Data"
           content="With your permission, we may collect and use your location data to provide location-based services such as store locators, delivery tracking, and personalized recommendations. You can disable location services at any time in your device settings."
         />
 
-        <Section 
+        <Section
           icon="notifications"
           iconColor="#FF3B30"
           title="Push Notifications"
           content="We may send you push notifications about order updates, special offers, and other relevant information. You can manage notification preferences in your account settings or device settings at any time."
         />
 
-        <Section 
+        <Section
           icon="time"
           iconColor="#6B7280"
           title="Data Retention"
           content="We retain your personal information for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. When data is no longer needed, it is securely deleted or anonymized."
         />
 
-        <Section 
+        <Section
           icon="people-circle"
           iconColor="#5E5CE6"
           title="Children's Privacy"
           content="Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately."
         />
 
-        <Section 
+        <Section
           icon="refresh"
           iconColor="#34C759"
           title="Policy Updates"

@@ -10,7 +10,8 @@ import {
   Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api, { getImageUrl } from '../../services/api'; // ✅ SAME api used in Product Details
+import api, { getImageUrl } from '../../services/api';
+import CustomHeader from '../../components/CustomHeader';
 
 const WishlistScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
@@ -95,12 +96,15 @@ const WishlistScreen = ({ navigation }) => {
   }
 
   return (
-    <FlatList
-      data={items}
-      keyExtractor={(item) => item._id}
-      renderItem={renderProduct}
-      contentContainerStyle={{ padding: 16 }}
-    />
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
+      <CustomHeader title="My Wishlist" showBack={true} />
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item._id}
+        renderItem={renderProduct}
+        contentContainerStyle={{ padding: 16 }}
+      />
+    </View>
   );
 };
 

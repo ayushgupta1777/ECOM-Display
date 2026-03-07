@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
+import { TouchableOpacity } from 'react-native';
 import AdminStack from './AdminNavigator';
 
 // Customer/Reseller Screens
@@ -49,12 +50,13 @@ import WithdrawRequestScreen from '../screens/reseller/WithdrawRequestScreen';
 
 // Admin Screens
 // import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
-import OrdersDashboardScreen from '../screens/admin/OrdersDashboardScreen';
 import AdminOrderDetailsScreen from '../screens/admin/AdminOrderDetailsScreen';
 import ProductManagementScreen from '../screens/admin/AdminProductManagementScreen';
 import AddProductScreen from '../screens/admin/AdminAddProductScreen';
 // import EditProductScreen from '../screens/admin/EditProductScreen';
 import ShiprocketSettingsScreen from '../screens/admin/ShiprocketSettingsScreen';
+import CouponManagementScreen from '../screens/admin/CouponManagementScreen';
+import OrdersDashboardScreen from '../screens/admin/OrdersDashboardScreen';
 import CategoryManagementScreen from '../screens/admin/CategoryManagementScreen';
 
 // ProfileScreen
@@ -178,7 +180,7 @@ const ResellerStack = () => (
 
 // ORDERS STACK
 const OrdersStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: true }}>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="OrdersList" component={OrdersScreen} />
     <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
     <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
@@ -209,6 +211,7 @@ const ProfileStack = () => (
     <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
 
     <Stack.Screen name="Wishlist" component={WishlistScreen} />
+    <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
 
     <Stack.Screen name="OrdersList" component={OrdersScreen} />
@@ -222,57 +225,97 @@ const ProfileStack = () => (
     <Stack.Screen
       name="Terms"
       component={TermsScreen}
-      options={{
+      options={({ navigation }) => ({
         headerShown: true,
         title: 'Terms & Conditions',
         headerStyle: { backgroundColor: '#4F46E5' },
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' }
-      }}
+        headerTitleStyle: { fontWeight: '600' },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProfileMain')}
+            style={{ marginLeft: 16 }}
+          >
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        )
+      })}
     />
     <Stack.Screen
       name="Privacy"
       component={PrivacyScreen}
-      options={{
+      options={({ navigation }) => ({
         headerShown: true,
         title: 'Privacy Policy',
         headerStyle: { backgroundColor: '#10B981' },
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' }
-      }}
+        headerTitleStyle: { fontWeight: '600' },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProfileMain')}
+            style={{ marginLeft: 16 }}
+          >
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        )
+      })}
     />
     <Stack.Screen
       name="Cancellation"
       component={CancellationScreen}
-      options={{
+      options={({ navigation }) => ({
         headerShown: true,
         title: 'Cancellation & Refund',
         headerStyle: { backgroundColor: '#FF9500' },
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' }
-      }}
+        headerTitleStyle: { fontWeight: '600' },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProfileMain')}
+            style={{ marginLeft: 16 }}
+          >
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        )
+      })}
     />
     <Stack.Screen
       name="Shipping"
       component={ShippingScreen}
-      options={{
+      options={({ navigation }) => ({
         headerShown: true,
         title: 'Shipping & Delivery',
         headerStyle: { backgroundColor: '#0A84FF' },
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' }
-      }}
+        headerTitleStyle: { fontWeight: '600' },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProfileMain')}
+            style={{ marginLeft: 16 }}
+          >
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        )
+      })}
     />
     <Stack.Screen
       name="ContactUs"
       component={ContactUsScreen}
-      options={{
+      options={({ navigation }) => ({
         headerShown: true,
         title: 'Contact Us',
         headerStyle: { backgroundColor: '#4F46E5' },
         headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' }
-      }}
+        headerTitleStyle: { fontWeight: '600' },
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProfileMain')}
+            style={{ marginLeft: 16 }}
+          >
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        )
+      })}
     />
   </Stack.Navigator>
 );
@@ -286,8 +329,7 @@ const ProfileStack = () => (
 //     <Stack.Screen name="ProductManagement" component={ProductManagementScreen} />
 //      <Stack.Screen name="AddProduct" component={AddProductScreen} />
 //     {/*<Stack.Screen name="EditProduct" component={EditProductScreen} /> */}
-//     <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
-//     {/* <Stack.Screen name="ResellerManagement" component={ResellerManagementScreen} /> */}
+//      <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
 //   </Stack.Navigator>
 // );
 

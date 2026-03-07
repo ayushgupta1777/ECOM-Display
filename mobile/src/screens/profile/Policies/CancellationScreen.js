@@ -9,16 +9,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const CancellationScreen = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Icon name="return-up-back" size={48} color="#FF9500" />
-        <Text style={styles.title}>Cancellation & Refund</Text>
-        <Text style={styles.subtitle}>Easy returns & quick refunds</Text>
-      </View>
+      {/* Header removed and moved to Navigator */}
+      <View style={{ height: 20 }} />
 
       <View style={styles.content}>
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('Orders')}
           >
@@ -27,7 +24,7 @@ const CancellationScreen = ({ navigation }) => {
             <Text style={styles.actionSubtitle}>View orders</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionCard}
             onPress={() => navigation.navigate('Support')}
           >
@@ -44,21 +41,21 @@ const CancellationScreen = ({ navigation }) => {
             <Text style={styles.policySectionTitle}>Order Cancellation</Text>
           </View>
 
-          <InfoCard 
+          <InfoCard
             icon="time-outline"
             iconColor="#34C759"
             title="Before Shipment"
             content="You can cancel your order anytime before it's shipped. Simply go to 'My Orders' and click on 'Cancel Order'. Your refund will be processed within 2-3 business days."
           />
 
-          <InfoCard 
+          <InfoCard
             icon="cube-outline"
             iconColor="#FF9500"
             title="After Shipment"
             content="Once your order is shipped, cancellation is not available. However, you can refuse the delivery or return the product after delivery as per our return policy."
           />
 
-          <InfoCard 
+          <InfoCard
             icon="ban-outline"
             iconColor="#6B7280"
             title="Non-Cancellable Items"
@@ -73,21 +70,21 @@ const CancellationScreen = ({ navigation }) => {
             <Text style={styles.policySectionTitle}>Return Policy</Text>
           </View>
 
-          <InfoCard 
+          <InfoCard
             icon="calendar-outline"
             iconColor="#5E5CE6"
             title="7-Day Return Window"
             content="Most products can be returned within 7 days of delivery. The product must be unused, in original packaging with all tags and accessories intact."
           />
 
-          <InfoCard 
+          <InfoCard
             icon="checkmark-done-outline"
             iconColor="#10B981"
             title="How to Return"
             content="Go to 'My Orders', select the item, and click 'Return'. Schedule a pickup or drop it at our nearest partner location. Return shipping is free for defective products."
           />
 
-          <InfoCard 
+          <InfoCard
             icon="shield-checkmark-outline"
             iconColor="#0A84FF"
             title="Quality Issues"
@@ -102,7 +99,7 @@ const CancellationScreen = ({ navigation }) => {
             <Text style={styles.policySectionTitle}>Refund Process</Text>
           </View>
 
-          <Timeline 
+          <Timeline
             steps={[
               {
                 icon: 'checkmark-circle',
@@ -127,22 +124,22 @@ const CancellationScreen = ({ navigation }) => {
 
           <View style={styles.refundMethods}>
             <Text style={styles.refundMethodsTitle}>Refund Methods:</Text>
-            <RefundMethod 
+            <RefundMethod
               icon="card"
               method="Credit/Debit Card"
               time="5-7 business days"
             />
-            <RefundMethod 
+            <RefundMethod
               icon="phone-portrait"
               method="UPI / Digital Wallet"
               time="2-4 business days"
             />
-            <RefundMethod 
+            <RefundMethod
               icon="wallet"
               method="Net Banking"
               time="3-5 business days"
             />
-            <RefundMethod 
+            <RefundMethod
               icon="cash"
               method="Cash on Delivery"
               time="Bank transfer in 5-7 days"
@@ -167,7 +164,7 @@ const CancellationScreen = ({ navigation }) => {
         </View>
 
         {/* Contact Support */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.supportButton}
           onPress={() => navigation.navigate('Support')}
         >

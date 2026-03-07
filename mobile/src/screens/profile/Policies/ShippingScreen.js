@@ -23,11 +23,8 @@ const ShippingScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Icon name="cube" size={48} color="#0A84FF" />
-        <Text style={styles.title}>Shipping & Delivery</Text>
-        <Text style={styles.subtitle}>Fast & reliable delivery to your doorstep</Text>
-      </View>
+      {/* Header removed and moved to Navigator */}
+      <View style={{ height: 20 }} />
 
       <View style={styles.content}>
         {/* Pincode Checker */}
@@ -43,7 +40,7 @@ const ShippingScreen = () => {
               keyboardType="numeric"
               maxLength={6}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.checkButton}
               onPress={checkDelivery}
             >
@@ -73,7 +70,7 @@ const ShippingScreen = () => {
             <Text style={styles.sectionTitle}>Shipping Options</Text>
           </View>
 
-          <ShippingOption 
+          <ShippingOption
             icon="flash"
             iconColor="#FF9500"
             title="Express Delivery"
@@ -86,7 +83,7 @@ const ShippingScreen = () => {
             ]}
           />
 
-          <ShippingOption 
+          <ShippingOption
             icon="bicycle"
             iconColor="#34C759"
             title="Standard Delivery"
@@ -99,7 +96,7 @@ const ShippingScreen = () => {
             ]}
           />
 
-          <ShippingOption 
+          <ShippingOption
             icon="home"
             iconColor="#0A84FF"
             title="Same Day Delivery"
@@ -121,7 +118,7 @@ const ShippingScreen = () => {
             <Text style={styles.sectionTitle}>Delivery Process</Text>
           </View>
 
-          <DeliveryStep 
+          <DeliveryStep
             number="1"
             icon="checkmark-done"
             title="Order Confirmed"
@@ -129,7 +126,7 @@ const ShippingScreen = () => {
             color="#10B981"
           />
 
-          <DeliveryStep 
+          <DeliveryStep
             number="2"
             icon="cube"
             title="Order Packed"
@@ -137,7 +134,7 @@ const ShippingScreen = () => {
             color="#0A84FF"
           />
 
-          <DeliveryStep 
+          <DeliveryStep
             number="3"
             icon="airplane"
             title="Shipped"
@@ -145,7 +142,7 @@ const ShippingScreen = () => {
             color="#5E5CE6"
           />
 
-          <DeliveryStep 
+          <DeliveryStep
             number="4"
             icon="home"
             title="Out for Delivery"
@@ -153,7 +150,7 @@ const ShippingScreen = () => {
             color="#FF9500"
           />
 
-          <DeliveryStep 
+          <DeliveryStep
             number="5"
             icon="checkmark-circle"
             title="Delivered"
@@ -176,17 +173,17 @@ const ShippingScreen = () => {
           </View>
 
           <View style={styles.trackingFeatures}>
-            <TrackingFeature 
+            <TrackingFeature
               icon="notifications"
               title="Instant Updates"
               description="Get notified at every milestone"
             />
-            <TrackingFeature 
+            <TrackingFeature
               icon="map"
               title="Live Location"
               description="See delivery partner's location"
             />
-            <TrackingFeature 
+            <TrackingFeature
               icon="person"
               title="Delivery Partner"
               description="Contact details shared before delivery"
@@ -202,27 +199,27 @@ const ShippingScreen = () => {
           </View>
 
           <View style={styles.chargesTable}>
-            <ChargeRow 
+            <ChargeRow
               label="Orders above ₹499"
               value="FREE"
               valueColor="#10B981"
             />
-            <ChargeRow 
+            <ChargeRow
               label="Orders below ₹499"
               value="₹49"
               valueColor="#6B7280"
             />
-            <ChargeRow 
+            <ChargeRow
               label="Express Delivery"
               value="₹99"
               valueColor="#FF9500"
             />
-            <ChargeRow 
+            <ChargeRow
               label="Same Day Delivery"
               value="₹149"
               valueColor="#FF3B30"
             />
-            <ChargeRow 
+            <ChargeRow
               label="Bulky/Heavy Items"
               value="As per weight"
               valueColor="#6B7280"
@@ -237,27 +234,27 @@ const ShippingScreen = () => {
             <Text style={styles.infoTitle}>Important Information</Text>
           </View>
 
-          <InfoItem 
+          <InfoItem
             icon="time"
             text="Delivery timings: Monday to Saturday, 9 AM to 7 PM"
           />
-          <InfoItem 
+          <InfoItem
             icon="calendar"
             text="Orders placed on Sunday/holidays will be processed next working day"
           />
-          <InfoItem 
+          <InfoItem
             icon="location"
             text="Remote areas may take 1-2 additional days"
           />
-          <InfoItem 
+          <InfoItem
             icon="alert-circle"
             text="Delivery partner will call 30 minutes before arrival"
           />
-          <InfoItem 
+          <InfoItem
             icon="shield-checkmark"
             text="Open box delivery available for high-value items"
           />
-          <InfoItem 
+          <InfoItem
             icon="receipt"
             text="Invoice and warranty card included in package"
           />

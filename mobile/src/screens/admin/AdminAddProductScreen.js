@@ -28,6 +28,7 @@ const AddProductScreen = ({ navigation, route }) => {
     price: '',
     mrp: '',
     stock: '',
+    sku: '',
     images: []
   });
 
@@ -42,6 +43,7 @@ const AddProductScreen = ({ navigation, route }) => {
         price: String(product.price || ''),
         mrp: String(product.mrp || ''),
         stock: String(product.stock || ''),
+        sku: product.sku || '',
         images: product.images || []
       });
       // If category exists, fetch subcategories
@@ -95,6 +97,7 @@ const AddProductScreen = ({ navigation, route }) => {
       price: '',
       mrp: '',
       stock: '',
+      sku: '',
       images: []
     });
     setSubcategories([]);
@@ -205,13 +208,29 @@ const AddProductScreen = ({ navigation, route }) => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    if (!formData.sku.trim()) {
+      Alert.alert(
+        'Missing SKU',
+        'You haven\'t entered a SKU ID. Would you like to enter one or let the system generate it automatically?',
+        [
+          { text: 'Enter SKU', style: 'cancel' },
+          { text: 'Auto-generate', onPress: () => processSubmit() }
+        ]
+      );
+      return;
+    }
+
+    processSubmit();
+  };
+
+  const processSubmit = async () => {
     try {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
         mrp: parseFloat(formData.mrp),
         stock: parseInt(formData.stock),
+        sku: formData.sku.trim() || undefined,
         discount: calculateDiscount(),
         category: formData.category,
         subcategory: formData.subcategory || null
@@ -545,6 +564,18 @@ const AddProductScreen = ({ navigation, route }) => {
               onChangeText={(text) => setFormData({ ...formData, stock: text })}
               keyboardType="number-pad"
               placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>SKU ID (Leave empty for auto-generation)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter SKU ID"
+              value={formData.sku}
+              onChangeText={(text) => setFormData({ ...formData, sku: text })}
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="characters"
             />
           </View>
         </View>

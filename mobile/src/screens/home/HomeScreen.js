@@ -115,7 +115,7 @@ const HomeScreen = ({ navigation }) => {
     { id: 'wallet', name: 'Wallet', icon: 'wallet-outline', route: 'Wallet' },
     { id: 'reselling', name: 'Reselling', icon: 'storefront-outline', route: 'Reselling' },
     { id: 'profile', name: 'Profile', icon: 'person-outline', route: 'Profile' },
-    { id: 'settings', name: 'Settings', icon: 'settings-outline', route: 'ShiprocketSettings' },
+    { id: 'settings', name: 'Settings', icon: 'settings-outline', route: 'Profile' },
     { id: 'support', name: 'Help & Support', icon: 'help-circle-outline', route: 'Support' },
   ];
 
@@ -145,11 +145,31 @@ const HomeScreen = ({ navigation }) => {
 
   const handleMenuPress = (route) => {
     closeDrawer();
-    if (route === 'ShiprocketSettings') {
-      // Check for admin role would be ideal here if not already handled by navigation
-      navigation.navigate('ShiprocketSettings');
-    } else {
-      navigation.navigate(route);
+
+    switch (route) {
+      case 'Wishlist':
+        navigation.navigate('Profile', { screen: 'Wishlist' });
+        break;
+      case 'Wallet':
+        navigation.navigate('ResellerHub', { screen: 'ResellerWallet' });
+        break;
+      case 'Reselling':
+        navigation.navigate('ResellerHub');
+        break;
+      case 'Support':
+        navigation.navigate('Profile', { screen: 'ContactUs' });
+        break;
+      case 'Profile':
+        navigation.navigate('Profile');
+        break;
+      case 'Orders':
+        navigation.navigate('Orders');
+        break;
+      case 'Home':
+        navigation.navigate('Home');
+        break;
+      default:
+        navigation.navigate(route);
     }
   };
 
@@ -234,7 +254,15 @@ const HomeScreen = ({ navigation }) => {
 
             {/* Logout Button */}
             {user && (
-              <TouchableOpacity style={styles.drawerLogoutBtn}>
+              <TouchableOpacity
+                style={styles.drawerLogoutBtn}
+                onPress={() => {
+                  closeDrawer();
+                  // Dispatch logout action here if you have one
+                  // dispatch(logout());
+                  navigation.replace('Login');
+                }}
+              >
                 <Icon name="log-out-outline" size={22} color="#FF4444" />
                 <Text style={styles.drawerLogoutText}>Logout</Text>
               </TouchableOpacity>
@@ -305,8 +333,9 @@ const HomeScreen = ({ navigation }) => {
               >
                 <Icon name="cart" size={22} color="#333" />
                 <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>1</Text>
+                  <Text style={styles.cartBadgeText}>{totalItems}</Text>
                 </View>
+                {/* )} */}
               </TouchableOpacity>
             </View>
           </View>
@@ -353,50 +382,6 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </View>
           </View>
-
-          <View style={styles.categoriesSection}>
-            {categories.map((item) => (
-              <TouchableOpacity
-                key={item._id}
-                style={styles.categoryGraphic}
-                onPress={() => navigation.navigate('SubcategoryList', {
-                  categoryId: item._id,
-                  categoryName: item.name
-                })}
-                activeOpacity={0.8}
-              >
-                {item.image ? (
-                  <Image
-                    source={{ uri: getImageUrl(item.image) }}
-                    style={styles.categoryImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={[styles.categoryImage, styles.categoryImagePlaceholder]}>
-                    <Icon name="image-outline" size={32} color="#9CA3AF" />
-                  </View>
-                )}
-
-                {/* Overlay Text */}
-
-                {/* <View style={styles.categoryOverlay}>
-                  <Text style={styles.categoryName}>{item.name}</Text>
-                  <Text style={styles.categorySubtext}>Exclusive Collections</Text>
-                  <TouchableOpacity style={styles.exploreBtn}>
-                    <Text style={styles.exploreBtnText}>Explore More</Text>
-                  </TouchableOpacity>
-                </View>*/}
-
-                {/* Play Button for Videos (Optional) */}
-                {item.hasVideo && (
-                  <View style={styles.playButton}>
-                    <Icon name="play" size={32} color="#fff" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-
 
           {/* FEATURED PRODUCTS */}
           <View style={styles.section}>
@@ -451,6 +436,50 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </ScrollView>
           </View>
+
+          <View style={styles.categoriesSection}>
+            {categories.map((item) => (
+              <TouchableOpacity
+                key={item._id}
+                style={styles.categoryGraphic}
+                onPress={() => navigation.navigate('SubcategoryList', {
+                  categoryId: item._id,
+                  categoryName: item.name
+                })}
+                activeOpacity={0.8}
+              >
+                {item.image ? (
+                  <Image
+                    source={{ uri: getImageUrl(item.image) }}
+                    style={styles.categoryImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.categoryImage, styles.categoryImagePlaceholder]}>
+                    <Icon name="image-outline" size={32} color="#9CA3AF" />
+                  </View>
+                )}
+
+                {/* Overlay Text */}
+
+                {/* <View style={styles.categoryOverlay}>
+                  <Text style={styles.categoryName}>{item.name}</Text>
+                  <Text style={styles.categorySubtext}>Exclusive Collections</Text>
+                  <TouchableOpacity style={styles.exploreBtn}>
+                    <Text style={styles.exploreBtnText}>Explore More</Text>
+                  </TouchableOpacity>
+                </View>*/}
+
+                {/* Play Button for Videos (Optional) */}
+                {item.hasVideo && (
+                  <View style={styles.playButton}>
+                    <Icon name="play" size={32} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
 
           {/* PROMOTIONAL POSTER */}
           {/* <TouchableOpacity style={styles.promoCard} activeOpacity={0.9}>
@@ -604,11 +633,6 @@ const styles = StyleSheet.create({
   logoTextContainer: {
     justifyContent: 'center',
   },
-  //   logoImage: {
-  //   width: 44,
-  //   height: 44,
-  //   marginRight: 12,
-  // },
 
 
 
@@ -861,7 +885,8 @@ const styles = StyleSheet.create({
 
   bannerSlide: {
     width: width,
-    height: 280
+    height: 280,
+    backgroundColor: '#F9FAFB' // Subtle background for contain mode
   },
 
   bannerImage: {

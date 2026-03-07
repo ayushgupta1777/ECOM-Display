@@ -10,7 +10,7 @@ import api from '../../services/api';
 const WithdrawScreen = ({ route, navigation }) => {
   const { availableBalance } = route.params;
   const { user } = useSelector((state) => state.auth);
-  
+
   const [amount, setAmount] = useState('');
   const [bankDetails, setBankDetails] = useState({
     accountHolderName: user?.resellerApplication?.accountHolderName || '',
@@ -81,7 +81,7 @@ const WithdrawScreen = ({ route, navigation }) => {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post('/reseller/withdraw', {
+      const response = await api.post('/reseller/withdrawal', {
         amount: withdrawAmount,
         bankDetails: bankDetails
       });

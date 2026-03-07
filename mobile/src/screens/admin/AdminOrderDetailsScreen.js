@@ -4,7 +4,7 @@ import {
   StyleSheet, ActivityIndicator, Alert, Modal, Image
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const AdminOrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
@@ -12,6 +12,8 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
   useEffect(() => {
     fetchOrder();
@@ -378,24 +380,29 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
             <View key={index} style={styles.itemCard}>
               {/* Product Image */}
               {item.product?.images && item.product.images[0] && (
-                <Image
-                  source={{ uri: item.product.images[0] }}
-                  style={styles.itemImage}
-                />
+                <TouchableOpacity onPress={() => {
+                  setSelectedImageUrl(getImageUrl(item.product.images[0]));
+                  setShowImageModal(true);
+                }}>
+                  <Image
+                    source={{ uri: getImageUrl(item.product.images[0]) }}
+                    style={styles.itemImage}
+                  />
+                </TouchableOpacity>
               )}
 
               <View style={styles.itemContent}>
                 <Text style={styles.itemName} numberOfLines={2}>
                   {item.product?.title}
                 </Text>
-                
+
                 {/* Item Details */}
                 <View style={styles.itemMetaRow}>
                   <View style={styles.itemMetaBox}>
                     <Text style={styles.itemMetaLabel}>Qty</Text>
                     <Text style={styles.itemMetaValue}>{item.quantity}</Text>
                   </View>
-                  
+
                   <View style={styles.itemMetaBox}>
                     <Text style={styles.itemMetaLabel}>Unit Price</Text>
                     <Text style={styles.itemMetaValue}>₹{item.price}</Text>
@@ -408,8 +415,10 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
                 </View>
 
                 {/* SKU if available */}
-                {item.product?.sku && (
-                  <Text style={styles.itemSku}>SKU: {item.product.sku}</Text>
+                {(item.sku || item.product?.sku) && (
+                  <View style={styles.skuBadge}>
+                    <Text style={styles.itemSku}>SKU: {item.sku || item.product.sku}</Text>
+                  </View>
                 )}
               </View>
             </View>
@@ -433,6 +442,16 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.priceLabel}>Tax</Text>
             <Text style={styles.priceValue}>₹{order.tax}</Text>
           </View>
+          {order.coupon && order.coupon.code && (
+            <View style={styles.priceRow}>
+              <Text style={[styles.priceLabel, { color: '#10B981', fontWeight: '600' }]}>
+                Discount ({order.coupon.code})
+              </Text>
+              <Text style={[styles.priceValue, { color: '#10B981' }]}>
+                -₹{order.coupon.discountAmount}
+              </Text>
+            </View>
+          )}
           <View style={styles.divider} />
           <View style={styles.priceRow}>
             <Text style={styles.totalLabel}>Total</Text>
@@ -497,6 +516,30 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
       )}
+
+      {/* Image Preview Modal */}
+      <Modal
+        visible={showImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImageModal(false)}
+      >
+        <View style={styles.imageOverlay}>
+          <TouchableOpacity
+            style={styles.closeImageBtn}
+            onPress={() => setShowImageModal(false)}
+          >
+            <Icon name="close-circle" size={40} color="#fff" />
+          </TouchableOpacity>
+          {selectedImageUrl && (
+            <Image
+              source={{ uri: selectedImageUrl }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -699,8 +742,17 @@ const styles = StyleSheet.create({
 
   itemSku: {
     fontSize: 11,
-    color: '#9CA3AF',
-    fontStyle: 'italic'
+    color: '#4F46E5',
+    fontWeight: '700'
+  },
+
+  skuBadge: {
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4
   },
 
   priceRow: {
@@ -771,6 +823,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#111827',
     marginTop: 12
+  },
+  imageOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  fullImage: {
+    width: '95%',
+    height: '80%',
+    borderRadius: 12
+  },
+  closeImageBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10
   }
 });
 

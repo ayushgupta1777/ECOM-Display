@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { login, clearError } from '../../redux/slices/authSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../../styling/screens/auth/LoginScreenPremiumStyles';
+import AdsngrowFooter from '../../components/AdsngrowFooter';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -48,7 +49,7 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles['login-premium-container']}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles['login-premium-scroll']}
         showsVerticalScrollIndicator={false}
       >
@@ -63,7 +64,7 @@ const LoginScreen = ({ navigation }) => {
               />
             </View>
           </View>
-          
+
           {/* Brand Name */}
           <View style={styles['login-premium-brand-container']}>
             <Text style={styles['login-premium-brand-name']}>New Raj Fancy</Text>
@@ -80,11 +81,11 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles['login-premium-input-group']}>
             <Text style={styles['login-premium-input-label']}>Email Address</Text>
             <View style={styles['login-premium-input-container']}>
-              <Icon 
-                name="mail-outline" 
-                size={20} 
-                color="#5E5CE6" 
-                style={styles['login-premium-input-icon']} 
+              <Icon
+                name="mail-outline"
+                size={20}
+                color="#5E5CE6"
+                style={styles['login-premium-input-icon']}
               />
               <TextInput
                 style={styles['login-premium-input-field']}
@@ -108,11 +109,11 @@ const LoginScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
             <View style={styles['login-premium-input-container']}>
-              <Icon 
-                name="lock-closed-outline" 
-                size={20} 
+              <Icon
+                name="lock-closed-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['login-premium-input-icon']} 
+                style={styles['login-premium-input-icon']}
               />
               <TextInput
                 style={styles['login-premium-input-field']}
@@ -123,7 +124,7 @@ const LoginScreen = ({ navigation }) => {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles['login-premium-eye-button']}
               >
@@ -155,15 +156,15 @@ const LoginScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          {/* Divider */}
-          <View style={styles['login-premium-divider']}>
+          {/* Divider Disabled */}
+          {/* <View style={styles['login-premium-divider']}>
             <View style={styles['login-premium-divider-line']} />
             <Text style={styles['login-premium-divider-text']}>or continue with</Text>
             <View style={styles['login-premium-divider-line']} />
-          </View>
+          </View> */}
 
-          {/* Social Login Buttons */}
-          <View style={styles['login-premium-social-container']}>
+          {/* Social Login Buttons Disabled */}
+          {/* <View style={styles['login-premium-social-container']}>
             <TouchableOpacity style={styles['login-premium-social-button']}>
               <Icon name="logo-google" size={24} color="#DB4437" />
             </TouchableOpacity>
@@ -173,7 +174,7 @@ const LoginScreen = ({ navigation }) => {
             <TouchableOpacity style={styles['login-premium-social-button']}>
               <Icon name="logo-facebook" size={24} color="#1877F2" />
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           {/* Sign Up Footer */}
           <View style={styles['login-premium-footer']}>
@@ -182,6 +183,9 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles['login-premium-footer-link']}>Sign Up</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Credits Footer */}
+          <AdsngrowFooter marginTop={30} paddingBottom={20} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

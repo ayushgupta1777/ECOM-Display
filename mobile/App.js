@@ -11,19 +11,41 @@ import { requestUserPermission, notificationListener } from './src/utils/notific
 
 
 
+const linking = {
+  prefixes: ['https://newrajfancystore.adsngrow.in', 'rajfancy://'],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          Home: {
+            screens: {
+              ProductDetails: 'product/:productId',
+            },
+          },
+        },
+      },
+      Auth: {
+        screens: {
+          Login: 'login',
+        }
+      }
+    },
+  },
+};
+
 const App = () => {
   useEffect(() => {
     // Request notification permission
     requestUserPermission();
-    
+
     // Listen for notifications
     notificationListener();
   }, []);
-        
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <AppNavigator />
         </NavigationContainer>
       </Provider>

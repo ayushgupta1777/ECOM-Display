@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrders } from '../../redux/slices/orderSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../../styling/screens/orders/OrdersScreenPremiumStyles';
+import CustomHeader from '../../components/CustomHeader';
 
 const OrdersScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -45,7 +46,7 @@ const OrdersScreen = ({ navigation }) => {
       style={styles['orders-premium-order-card']}
       onPress={() => navigation.navigate('OrderDetails', { orderId: item._id })}
       activeOpacity={0.8}
-    >                     
+    >
       <View style={styles['orders-premium-order-header']}>
         <View style={styles['orders-premium-order-header-left']}>
           <Text style={styles['orders-premium-order-number']}>Order #{item.orderNo}</Text>
@@ -82,10 +83,10 @@ const OrdersScreen = ({ navigation }) => {
 
       <View style={styles['orders-premium-order-footer']}>
         <View style={styles['orders-premium-payment-badge']}>
-          <Icon 
-            name={item.paymentMethod === 'online' ? 'card-outline' : 'cash-outline'} 
-            size={14} 
-            color="#5E5CE6" 
+          <Icon
+            name={item.paymentMethod === 'online' ? 'card-outline' : 'cash-outline'}
+            size={14}
+            color="#5E5CE6"
           />
           <Text style={styles['orders-premium-payment-method']}>
             {item.paymentMethod.toUpperCase()}
@@ -122,6 +123,7 @@ const OrdersScreen = ({ navigation }) => {
 
   return (
     <View style={styles['orders-premium-container']}>
+      <CustomHeader title="My Orders" showBack={true} />
       <FlatList
         data={orders}
         renderItem={renderOrder}

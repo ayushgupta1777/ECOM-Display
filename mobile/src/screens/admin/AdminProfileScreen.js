@@ -55,6 +55,18 @@ const AdminProfileScreen = ({ navigation }) => {
           label: 'Orders',
           screen: 'OrdersDashboard',
           color: '#10B981'
+        },
+        {
+          icon: 'cash-outline',
+          label: 'Withdrawals',
+          screen: 'AdminWithdrawals',
+          color: '#F97316'
+        },
+        {
+          icon: 'people-outline',
+          label: 'Reseller Apps',
+          screen: 'AdminResellerApplications',
+          color: '#8B5CF6'
         }
       ]
     },
@@ -62,10 +74,22 @@ const AdminProfileScreen = ({ navigation }) => {
       title: 'Settings',
       items: [
         {
+          icon: 'settings-outline',
+          label: 'General Settings',
+          screen: 'GeneralSettings',
+          color: '#6B7280'
+        },
+        {
           icon: 'rocket-outline',
           label: 'Shiprocket Settings',
           screen: 'ShiprocketSettings',
           color: '#06B6D4'
+        },
+        {
+          icon: 'ticket-outline',
+          label: 'Coupon Management',
+          screen: 'CouponManagement',
+          color: '#8B5CF6'
         },
         {
           icon: 'notifications-outline',

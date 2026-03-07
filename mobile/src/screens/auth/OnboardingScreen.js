@@ -5,13 +5,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../../styling/screens/auth/OnboardingScreenPremiumStyles';
+import AdsngrowFooter from '../../components/AdsngrowFooter';
 
 const OnboardingScreen = ({ navigation }) => {
   return (
     <ScrollView style={styles['onboarding-premium-container']}>
       {/* Gradient Background Overlay */}
       <View style={styles['onboarding-premium-gradient']} />
-      
+
       {/* Premium Content */}
       <View style={styles['onboarding-premium-content']}>
         {/* Logo Section */}
@@ -85,6 +86,9 @@ const OnboardingScreen = ({ navigation }) => {
         <Text style={styles['onboarding-premium-terms']}>
           By continuing, you agree to our Terms & Privacy Policy
         </Text>
+
+        {/* Adsngrow Credit */}
+        <AdsngrowFooter marginTop={30} paddingBottom={20} />
       </View>
     </ScrollView>
   );

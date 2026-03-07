@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
-  Image, StyleSheet, ActivityIndicator, SectionList, SafeAreaView
+  Image, StyleSheet, ActivityIndicator, SectionList, SafeAreaView, StatusBar
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
@@ -14,22 +14,27 @@ const SearchScreen = ({ navigation }) => {
     subcategories: []
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [recentSearches, setRecentSearches] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (query.trim().length > 1) {
       const debounce = setTimeout(() => {
         handleSearch();
+        fetchSuggestions();
       }, 500);
       return () => clearTimeout(debounce);
     } else {
       setResults({ products: [], categories: [], subcategories: [] });
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [query]);
 
   const handleSearch = async () => {
     try {
       setIsLoading(true);
+      setShowSuggestions(false);
       const response = await api.get('/search', {
         params: { query }
       });
@@ -46,12 +51,32 @@ const SearchScreen = ({ navigation }) => {
     }
   };
 
+  const fetchSuggestions = async () => {
+    try {
+      const response = await api.get('/search/suggestions', {
+        params: { query }
+      });
+      setSuggestions(response.data.data);
+      setShowSuggestions(response.data.data.length > 0);
+    } catch (error) {
+      console.error('Suggestions error:', error);
+    }
+  };
+
+  const handleSuggestionPress = (suggestion) => {
+    setQuery(suggestion.text);
+    handleSearch();
+  };
+
   // Handle category press - show subcategories or products
   const handleCategoryPress = async (category) => {
     // Check if this category has subcategories
     if (!category.parent || category.parent === null) {
-      // It's a parent category, navigate to CategoryListScreen
-      navigation.navigate('CategoryList', { parentCategoryId: category._id });
+      // It's a parent category, navigate to SubcategoryList (fixed from CategoryList based on HomeScreen)
+      navigation.navigate('SubcategoryList', {
+        categoryId: category._id,
+        categoryName: category.name
+      });
     } else {
       // It's a subcategory, show its products directly
       navigation.navigate('ProductList', {
@@ -73,7 +98,7 @@ const SearchScreen = ({ navigation }) => {
     >
       {item.images && item.images.length > 0 ? (
         <Image
-          source={{ uri: item.images[0] }}
+          source={{ uri: getImageUrl(item.images[0]) }}
           style={styles.productImage}
         />
       ) : (
@@ -115,7 +140,7 @@ const SearchScreen = ({ navigation }) => {
     >
       {item.image ? (
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: getImageUrl(item.image) }}
           style={styles.categoryImage}
         />
       ) : (
@@ -125,7 +150,7 @@ const SearchScreen = ({ navigation }) => {
       )}
       <View style={styles.categoryCardInfo}>
         <Text style={styles.categoryCardName}>{item.name}</Text>
-        <Text style={styles.categoryCardSlug}>{item.slug}</Text>
+        {item.slug && <Text style={styles.categoryCardSlug}>{item.slug}</Text>}
       </View>
       <Icon name="chevron-forward" size={20} color="#4F46E5" />
     </TouchableOpacity>
@@ -139,7 +164,7 @@ const SearchScreen = ({ navigation }) => {
     >
       {item.image ? (
         <Image
-          source={{ uri: item.image }}
+          source={{ uri: getImageUrl(item.image) }}
           style={styles.subcategoryImage}
         />
       ) : (
@@ -164,6 +189,7 @@ const SearchScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -176,8 +202,13 @@ const SearchScreen = ({ navigation }) => {
             placeholder="Search products, categories..."
             placeholderTextColor="#9CA3AF"
             value={query}
-            onChangeText={setQuery}
+            onChangeText={(text) => {
+              setQuery(text);
+              if (text.length > 1) setShowSuggestions(true);
+            }}
             autoFocus
+            returnKeyType="search"
+            onSubmitEditing={handleSearch}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
@@ -186,6 +217,27 @@ const SearchScreen = ({ navigation }) => {
           )}
         </View>
       </View>
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <View style={styles.suggestionsContainer}>
+          {suggestions.map((suggestion, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.suggestionItem}
+              onPress={() => handleSuggestionPress(suggestion)}
+            >
+              <Icon
+                name={suggestion.type === 'category' ? 'folder-outline' : 'search-outline'}
+                size={18}
+                color="#6B7280"
+              />
+              <Text style={styles.suggestionText}>{suggestion.text}</Text>
+              <Icon name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -222,7 +274,7 @@ const SearchScreen = ({ navigation }) => {
             </Text>
           </View>
         </View>
-      ) : !hasResults ? (
+      ) : !hasResults && !showSuggestions ? (
         // No results state
         <View style={styles.emptyState}>
           <Icon name="sad-outline" size={64} color="#D1D5DB" />
@@ -230,35 +282,32 @@ const SearchScreen = ({ navigation }) => {
           <Text style={styles.emptySubtext}>Try different keywords</Text>
         </View>
       ) : (
-        // Results
-        <FlatList
-          data={[
+        // Results using SectionList (Fixed)
+        <SectionList
+          sections={[
             {
               title: `Categories (${results.categories.length})`,
               data: results.categories,
-              type: 'categories',
-              render: renderCategory
+              renderItem: renderCategory
             },
             {
               title: `Subcategories (${results.subcategories.length})`,
               data: results.subcategories,
-              type: 'subcategories',
-              render: renderSubcategory
+              renderItem: renderSubcategory
             },
             {
               title: `Products (${results.products.length})`,
               data: results.products,
-              type: 'products',
-              render: renderProduct
+              renderItem: renderProduct
             }
           ].filter(section => section.data.length > 0)}
-          renderItem={({ item, section }) => section.render({ item })}
           renderSectionHeader={({ section: { title } }) => (
             <Text style={styles.sectionHeader}>{title}</Text>
           )}
           keyExtractor={(item, index) => item._id || index.toString()}
           contentContainerStyle={styles.resultsContainer}
           stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </SafeAreaView>
@@ -293,6 +342,37 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: '#111827'
+  },
+  // Suggestions
+  suggestionsContainer: {
+    position: 'absolute',
+    top: 70,
+    left: 16,
+    right: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 1000,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    maxHeight: 250
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    gap: 12
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#374151'
   },
   loadingContainer: {
     flex: 1,

@@ -19,6 +19,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { logout } from '../../redux/slices/authSlice';
+import AdsngrowFooter from '../../components/AdsngrowFooter';
 
 const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -31,7 +32,7 @@ const ProfileScreen = ({ navigation }) => {
     returns: 0,
     points: 0
   });
-  
+
   const [resellerForm, setResellerForm] = useState({
     businessName: '',
     accountHolderName: '',
@@ -79,30 +80,30 @@ const ProfileScreen = ({ navigation }) => {
     {
       title: 'Shopping',
       items: [
-        { 
-          icon: 'receipt-outline', 
-          title: 'My Orders', 
+        {
+          icon: 'receipt-outline',
+          title: 'My Orders',
           screen: 'OrdersList',
           color: '#0A84FF',
           description: 'Track & manage your orders'
         },
-        { 
-          icon: 'return-up-back-outline', 
-          title: 'Returns & Refunds', 
+        {
+          icon: 'return-up-back-outline',
+          title: 'Returns & Refunds',
           screen: 'MyReturns',
           color: '#FF9500',
           description: 'Manage your returns'
         },
-        { 
-          icon: 'heart-outline', 
-          title: 'My Wishlist', 
+        {
+          icon: 'heart-outline',
+          title: 'My Wishlist',
           screen: 'Wishlist',
           color: '#FF3B30',
           description: 'Your saved items'
         },
-        { 
-          icon: 'star-outline', 
-          title: 'My Reviews', 
+        {
+          icon: 'star-outline',
+          title: 'My Reviews',
           screen: 'MyReviews',
           color: '#FF9500',
           description: 'Reviews you\'ve written'
@@ -112,30 +113,30 @@ const ProfileScreen = ({ navigation }) => {
     {
       title: 'Account Settings',
       items: [
-        { 
-          icon: 'person-outline', 
-          title: 'Edit Profile', 
+        {
+          icon: 'person-outline',
+          title: 'Edit Profile',
           screen: 'EditProfile',
           color: '#5E5CE6',
           description: 'Update personal info'
         },
-        { 
-          icon: 'location-outline', 
-          title: 'Manage Addresses', 
+        {
+          icon: 'location-outline',
+          title: 'Manage Addresses',
           screen: 'Addresses',
           color: '#34C759',
           description: 'Delivery addresses'
         },
-        { 
-          icon: 'card-outline', 
-          title: 'Payment Methods', 
+        {
+          icon: 'card-outline',
+          title: 'Payment Methods',
           screen: 'PaymentMethods',
           color: '#5E5CE6',
           description: 'Saved cards & UPI'
         },
-        { 
-          icon: 'notifications-outline', 
-          title: 'Notifications', 
+        {
+          icon: 'notifications-outline',
+          title: 'Notifications',
           screen: 'Notifications',
           color: '#FF9500',
           description: 'Manage alerts'
@@ -143,58 +144,32 @@ const ProfileScreen = ({ navigation }) => {
       ]
     },
     {
-      title: 'Help & Support',
-      items: [
-        { 
-          icon: 'help-circle-outline', 
-          title: 'Help Center', 
-          screen: 'Support',
-          color: '#34C759',
-          description: '24/7 customer support'
-        },
-        { 
-          icon: 'chatbubbles-outline', 
-          title: 'Contact Us', 
-          screen: 'ContactUs',
-          color: '#0A84FF',
-          description: 'Get in touch'
-        },
-        { 
-          icon: 'mail-outline', 
-          title: 'Feedback', 
-          screen: 'Feedback',
-          color: '#FF9500',
-          description: 'Share your thoughts'
-        }
-      ]
-    },
-    {
       title: 'Legal & Policies',
       items: [
-        { 
-          icon: 'document-text-outline', 
-          title: 'Terms & Conditions', 
+        {
+          icon: 'document-text-outline',
+          title: 'Terms & Conditions',
           screen: 'Terms',
           color: '#6B7280',
           description: 'Usage terms'
         },
-        { 
-          icon: 'shield-checkmark-outline', 
-          title: 'Privacy Policy', 
+        {
+          icon: 'shield-checkmark-outline',
+          title: 'Privacy Policy',
           screen: 'Privacy',
           color: '#6B7280',
           description: 'Data protection'
         },
-        { 
-          icon: 'return-up-back-outline', 
-          title: 'Cancellation & Refund', 
+        {
+          icon: 'return-up-back-outline',
+          title: 'Cancellation & Refund',
           screen: 'Cancellation',
           color: '#6B7280',
           description: 'Return policy'
         },
-        { 
-          icon: 'cube-outline', 
-          title: 'Shipping & Delivery', 
+        {
+          icon: 'cube-outline',
+          title: 'Shipping & Delivery',
           screen: 'Shipping',
           color: '#6B7280',
           description: 'Delivery info'
@@ -204,8 +179,8 @@ const ProfileScreen = ({ navigation }) => {
   ];
 
   const handleResellerApply = async () => {
-    if (!resellerForm.businessName || !resellerForm.accountHolderName || 
-        !resellerForm.accountNumber || !resellerForm.bankName || !resellerForm.ifscCode) {
+    if (!resellerForm.businessName || !resellerForm.accountHolderName ||
+      !resellerForm.accountNumber || !resellerForm.bankName || !resellerForm.ifscCode) {
       Alert.alert('Error', 'Please fill all required fields');
       return;
     }
@@ -228,7 +203,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}
     >
@@ -246,15 +221,15 @@ const ProfileScreen = ({ navigation }) => {
             <Icon name="camera" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
-        
+
         <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
         <Text style={styles.userEmail}>{user?.email || 'guest@example.com'}</Text>
 
         <View style={styles.roleBadge}>
-          <Icon 
-            name={user?.role === 'reseller' ? 'bag-check-outline' : 'person-circle-outline'} 
-            size={14} 
-            color="#fff" 
+          <Icon
+            name={user?.role === 'reseller' ? 'bag-check-outline' : 'person-circle-outline'}
+            size={14}
+            color="#fff"
           />
           <Text style={styles.roleText}>
             {user?.role === 'reseller' ? 'Reseller Account' : 'Premium Customer'}
@@ -264,7 +239,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Reseller Section */}
       {user?.role === 'reseller' || user?.isReseller ? (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.resellerDashboardCard}
           onPress={() => navigation.navigate('ResellerHubMain')}
           activeOpacity={0.7}
@@ -283,7 +258,7 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.becomeResellerCard}
           onPress={() => navigation.navigate('BecomeReseller')}
           activeOpacity={0.7}
@@ -301,7 +276,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Quick Stats */}
       <View style={styles.statsContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.statCard}
           onPress={() => navigation.navigate('OrdersList')}
           activeOpacity={0.7}
@@ -317,7 +292,7 @@ const ProfileScreen = ({ navigation }) => {
           )} */}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.statCard}
           onPress={() => navigation.navigate('Wishlist')}
           activeOpacity={0.7}
@@ -333,7 +308,7 @@ const ProfileScreen = ({ navigation }) => {
           )} */}
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.statCard}
           onPress={() => navigation.navigate('MyReturns')}
           activeOpacity={0.7}
@@ -381,7 +356,7 @@ const ProfileScreen = ({ navigation }) => {
                 <View style={[styles.menuIconBg, { backgroundColor: `${item.color}15` }]}>
                   <Icon name={item.icon} size={22} color={item.color} />
                 </View>
-                
+
                 <View style={styles.menuTextContainer}>
                   <Text style={styles.menuTitle}>{item.title}</Text>
                   <Text style={styles.menuDescription}>{item.description}</Text>
@@ -400,7 +375,7 @@ const ProfileScreen = ({ navigation }) => {
           <Icon name="information-circle-outline" size={20} color="#6B7280" />
           <Text style={styles.appInfoText}>App Version: 1.0.0</Text>
         </View>
-        <Text style={styles.appInfoSubtext}>Made with ❤️ for our customers</Text>
+        <AdsngrowFooter marginTop={10} paddingBottom={0} />
       </View>
 
       {/* Logout Button */}
@@ -416,8 +391,8 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.bottomSpacer} />
 
       {/* Reseller Application Modal */}
-      <Modal 
-        visible={showResellerModal} 
+      <Modal
+        visible={showResellerModal}
         animationType="slide"
         transparent={true}
       >
@@ -443,7 +418,7 @@ const ProfileScreen = ({ navigation }) => {
                     style={styles.textInput}
                     placeholder="Enter your business name"
                     value={resellerForm.businessName}
-                    onChangeText={(text) => setResellerForm({...resellerForm, businessName: text})}
+                    onChangeText={(text) => setResellerForm({ ...resellerForm, businessName: text })}
                   />
                 </View>
               </View>
@@ -456,7 +431,7 @@ const ProfileScreen = ({ navigation }) => {
                     style={styles.textInput}
                     placeholder="Full name as per bank"
                     value={resellerForm.accountHolderName}
-                    onChangeText={(text) => setResellerForm({...resellerForm, accountHolderName: text})}
+                    onChangeText={(text) => setResellerForm({ ...resellerForm, accountHolderName: text })}
                   />
                 </View>
               </View>
@@ -469,7 +444,7 @@ const ProfileScreen = ({ navigation }) => {
                     style={styles.textInput}
                     placeholder="Enter bank name"
                     value={resellerForm.bankName}
-                    onChangeText={(text) => setResellerForm({...resellerForm, bankName: text})}
+                    onChangeText={(text) => setResellerForm({ ...resellerForm, bankName: text })}
                   />
                 </View>
               </View>
@@ -482,7 +457,7 @@ const ProfileScreen = ({ navigation }) => {
                     style={styles.textInput}
                     placeholder="Enter account number"
                     value={resellerForm.accountNumber}
-                    onChangeText={(text) => setResellerForm({...resellerForm, accountNumber: text})}
+                    onChangeText={(text) => setResellerForm({ ...resellerForm, accountNumber: text })}
                     keyboardType="number-pad"
                   />
                 </View>
@@ -496,14 +471,14 @@ const ProfileScreen = ({ navigation }) => {
                     style={styles.textInput}
                     placeholder="Enter IFSC code"
                     value={resellerForm.ifscCode}
-                    onChangeText={(text) => setResellerForm({...resellerForm, ifscCode: text.toUpperCase()})}
+                    onChangeText={(text) => setResellerForm({ ...resellerForm, ifscCode: text.toUpperCase() })}
                     autoCapitalize="characters"
                   />
                 </View>
               </View>
 
-              <TouchableOpacity 
-                style={styles.submitBtn} 
+              <TouchableOpacity
+                style={styles.submitBtn}
                 onPress={handleResellerApply}
               >
                 <Text style={styles.submitText}>Submit Application</Text>

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
+import CustomHeader from '../../components/CustomHeader';
 
 
 const MyReturnsScreen = ({ navigation }) => {
@@ -63,34 +64,37 @@ const MyReturnsScreen = ({ navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {returns.map((returnRequest) => (
-        <TouchableOpacity
-          key={returnRequest._id}
-          style={styles.returnCard}
-          onPress={() => navigation.navigate('ReturnDetails', { returnId: returnRequest._id })}
-        >
-          <View style={styles.returnHeader}>
-            <Text style={styles.returnNo}>Return #{returnRequest.returnNo}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(returnRequest.status) + '20' }]}>
-              <Text style={[styles.statusText, { color: getStatusColor(returnRequest.status) }]}>
-                {returnRequest.status.replace('_', ' ').toUpperCase()}
-              </Text>
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
+      <CustomHeader title="My Returns" showBack={true} />
+      <ScrollView style={styles.container}>
+        {returns.map((returnRequest) => (
+          <TouchableOpacity
+            key={returnRequest._id}
+            style={styles.returnCard}
+            onPress={() => navigation.navigate('ReturnDetails', { returnId: returnRequest._id })}
+          >
+            <View style={styles.returnHeader}>
+              <Text style={styles.returnNo}>Return #{returnRequest.returnNo}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(returnRequest.status) + '20' }]}>
+                <Text style={[styles.statusText, { color: getStatusColor(returnRequest.status) }]}>
+                  {returnRequest.status.replace('_', ' ').toUpperCase()}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <Text style={styles.returnOrder}>Order #{returnRequest.order.orderNo}</Text>
-          <Text style={styles.returnAmount}>Refund Amount: ₹{returnRequest.refundAmount}</Text>
-          <Text style={styles.returnDate}>
-            Requested on {new Date(returnRequest.createdAt).toLocaleDateString()}
-          </Text>
+            <Text style={styles.returnOrder}>Order #{returnRequest.order.orderNo}</Text>
+            <Text style={styles.returnAmount}>Refund Amount: ₹{returnRequest.refundAmount}</Text>
+            <Text style={styles.returnDate}>
+              Requested on {new Date(returnRequest.createdAt).toLocaleDateString()}
+            </Text>
 
-          <View style={styles.returnFooter}>
-            <Icon name="chevron-forward" size={20} color="#4F46E5" />
-          </View>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+            <View style={styles.returnFooter}>
+              <Icon name="chevron-forward" size={20} color="#4F46E5" />
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 

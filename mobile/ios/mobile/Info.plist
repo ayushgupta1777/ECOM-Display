@@ -71,5 +71,9 @@
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
 	</array>
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:newrajfancystore.adsngrow.in</string>
+    </array>
 </dict>
 </plist>

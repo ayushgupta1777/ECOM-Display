@@ -67,8 +67,8 @@ const RegisterScreen = ({ navigation }) => {
 
   const roles = [
     { label: 'Shop as Customer', value: 'customer', icon: 'cart', color: '#0A84FF' },
-    { label: 'Sell as Vendor', value: 'vendor', icon: 'storefront', color: '#5E5CE6' },
-    { label: 'Earn as Reseller', value: 'reseller', icon: 'share-social', color: '#FF9500' },
+    // { label: 'Sell as Vendor', value: 'vendor', icon: 'storefront', color: '#5E5CE6' },
+    // { label: 'Earn as Reseller', value: 'reseller', icon: 'share-social', color: '#FF9500' },
   ];
 
   return (
@@ -76,7 +76,7 @@ const RegisterScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles['register-premium-container']}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles['register-premium-scroll']}
         showsVerticalScrollIndicator={false}
       >
@@ -92,11 +92,11 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles['register-premium-input-group']}>
             <Text style={styles['register-premium-input-label']}>Full Name</Text>
             <View style={styles['register-premium-input-container']}>
-              <Icon 
-                name="person-outline" 
-                size={20} 
+              <Icon
+                name="person-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['register-premium-input-icon']} 
+                style={styles['register-premium-input-icon']}
               />
               <TextInput
                 style={styles['register-premium-input-field']}
@@ -112,11 +112,11 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles['register-premium-input-group']}>
             <Text style={styles['register-premium-input-label']}>Email Address</Text>
             <View style={styles['register-premium-input-container']}>
-              <Icon 
-                name="mail-outline" 
-                size={20} 
+              <Icon
+                name="mail-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['register-premium-input-icon']} 
+                style={styles['register-premium-input-icon']}
               />
               <TextInput
                 style={styles['register-premium-input-field']}
@@ -136,11 +136,11 @@ const RegisterScreen = ({ navigation }) => {
               Phone Number <Text style={styles['register-premium-optional']}>( Optional )</Text>
             </Text>
             <View style={styles['register-premium-input-container']}>
-              <Icon 
-                name="call-outline" 
-                size={20} 
+              <Icon
+                name="call-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['register-premium-input-icon']} 
+                style={styles['register-premium-input-icon']}
               />
               <TextInput
                 style={styles['register-premium-input-field']}
@@ -153,38 +153,16 @@ const RegisterScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Role Selection - Premium Cards */}
-          <View style={styles['register-premium-input-group']}>
-            <Text style={styles['register-premium-input-label']}>I want to</Text>
-            <View style={styles['register-premium-role-container']}>
-              {roles.map((role) => (
-                <TouchableOpacity
-                  key={role.value}
-                  style={[
-                    styles['register-premium-role-card'],
-                    formData.role === role.value && styles['register-premium-role-card-active']
-                  ]}
-                  onPress={() => updateFormData('role', role.value)}
-                >
-                  <View style={[
-                    styles['register-premium-role-icon-container'],
-                    { backgroundColor: `${role.color}15` }
-                  ]}>
-                    <Icon name={role.icon} size={24} color={role.color} />
-                  </View>
-                  <Text style={[
-                    styles['register-premium-role-text'],
-                    formData.role === role.value && styles['register-premium-role-text-active']
-                  ]}>
-                    {role.label}
-                  </Text>
-                  {formData.role === role.value && (
-                    <View style={styles['register-premium-role-check']}>
-                      <Icon name="checkmark-circle" size={20} color={role.color} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+          {/* Role Selection - Fixed to Customer */}
+          <View style={{ marginBottom: 20 }}>
+            <Text style={styles['register-premium-input-label']}>Account Type</Text>
+            <View style={[styles['register-premium-role-card'], styles['register-premium-role-card-active'], { marginTop: 8 }]}>
+              <View style={[styles['register-premium-role-icon-container'], { backgroundColor: '#0A84FF15' }]}>
+                <Icon name="cart" size={24} color="#0A84FF" />
+              </View>
+              <Text style={[styles['register-premium-role-text'], styles['register-premium-role-text-active']]}>
+                Shop as Customer
+              </Text>
             </View>
           </View>
 
@@ -192,11 +170,11 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles['register-premium-input-group']}>
             <Text style={styles['register-premium-input-label']}>Password</Text>
             <View style={styles['register-premium-input-container']}>
-              <Icon 
-                name="lock-closed-outline" 
-                size={20} 
+              <Icon
+                name="lock-closed-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['register-premium-input-icon']} 
+                style={styles['register-premium-input-icon']}
               />
               <TextInput
                 style={styles['register-premium-input-field']}
@@ -207,7 +185,7 @@ const RegisterScreen = ({ navigation }) => {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles['register-premium-eye-button']}
               >
@@ -224,11 +202,11 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles['register-premium-input-group']}>
             <Text style={styles['register-premium-input-label']}>Confirm Password</Text>
             <View style={styles['register-premium-input-container']}>
-              <Icon 
-                name="lock-closed-outline" 
-                size={20} 
+              <Icon
+                name="lock-closed-outline"
+                size={20}
                 color="#5E5CE6"
-                style={styles['register-premium-input-icon']} 
+                style={styles['register-premium-input-icon']}
               />
               <TextInput
                 style={styles['register-premium-input-field']}

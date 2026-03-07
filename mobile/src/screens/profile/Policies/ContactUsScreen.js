@@ -47,11 +47,8 @@ const ContactUsScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Icon name="chatbubbles" size={48} color="#4F46E5" />
-        <Text style={styles.title}>Contact Us</Text>
-        <Text style={styles.subtitle}>We'd love to hear from you!</Text>
-      </View>
+      {/* Header removed and moved to Navigator */}
+      <View style={{ height: 20 }} />
 
       <View style={styles.content}>
         {/* Quick Contact Cards */}
@@ -207,22 +204,22 @@ const ContactUsScreen = () => {
             <Text style={styles.faqTitle}>Frequently Asked Questions</Text>
           </View>
 
-          <FAQItem 
+          <FAQItem
             question="How do I track my order?"
             answer="Go to 'My Orders' in your profile, select your order, and click 'Track Order' to see real-time updates."
           />
 
-          <FAQItem 
+          <FAQItem
             question="What are your payment options?"
             answer="We accept Credit/Debit Cards, Net Banking, UPI, Wallets, and Cash on Delivery."
           />
 
-          <FAQItem 
+          <FAQItem
             question="How long does delivery take?"
             answer="Standard delivery takes 3-5 business days. Express delivery is available for 1-2 days."
           />
 
-          <FAQItem 
+          <FAQItem
             question="Can I cancel my order?"
             answer="Yes, you can cancel before shipment. After shipment, you can return within 7 days of delivery."
           />
@@ -232,35 +229,35 @@ const ContactUsScreen = () => {
         <View style={styles.socialSection}>
           <Text style={styles.socialTitle}>Connect With Us</Text>
           <View style={styles.socialButtons}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.socialButton, { backgroundColor: '#1877F215' }]}
               onPress={() => handleSocialLink('https://facebook.com')}
             >
               <Icon name="logo-facebook" size={24} color="#1877F2" />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.socialButton, { backgroundColor: '#E4405F15' }]}
               onPress={() => handleSocialLink('https://instagram.com')}
             >
               <Icon name="logo-instagram" size={24} color="#E4405F" />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.socialButton, { backgroundColor: '#1DA1F215' }]}
               onPress={() => handleSocialLink('https://twitter.com')}
             >
               <Icon name="logo-twitter" size={24} color="#1DA1F2" />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.socialButton, { backgroundColor: '#0A66C215' }]}
               onPress={() => handleSocialLink('https://linkedin.com')}
             >
               <Icon name="logo-linkedin" size={24} color="#0A66C2" />
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.socialButton, { backgroundColor: '#FF000015' }]}
               onPress={() => handleSocialLink('https://youtube.com')}
             >
@@ -286,17 +283,17 @@ const FAQItem = ({ question, answer }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.faqItem}
       onPress={() => setExpanded(!expanded)}
       activeOpacity={0.7}
     >
       <View style={styles.faqQuestion}>
         <Text style={styles.faqQuestionText}>{question}</Text>
-        <Icon 
-          name={expanded ? 'chevron-up' : 'chevron-down'} 
-          size={20} 
-          color="#6B7280" 
+        <Icon
+          name={expanded ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          color="#6B7280"
         />
       </View>
       {expanded && (

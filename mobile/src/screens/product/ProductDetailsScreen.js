@@ -6,14 +6,15 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
-  ActivityIndicator, Alert, StyleSheet, Modal, TextInput, Dimensions
+  ActivityIndicator, Alert, StyleSheet, Modal, TextInput, Dimensions, Share
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductDetails } from '../../redux/slices/productSlice';
 import { addToCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api, { getImageUrl } from '../../services/api';
+import api, { getImageUrl, BASE_URL } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ZoomableImage from '../../components/ZoomableImage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -29,6 +30,8 @@ const ProductDetailsScreen = ({ route, navigation }) => {
   // Image Gallery
   const [showFullscreenImage, setShowFullscreenImage] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const scrollRef = React.useRef(null);
 
   // Reviews
   const [reviews, setReviews] = useState([]);
@@ -185,6 +188,19 @@ const ProductDetailsScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const productUrl = `${BASE_URL}/product/${productId}`;
+      const result = await Share.share({
+        message: `Check out this product: ${product.title}\n\nPrice: ₹${product.price}\n\nView here: ${productUrl}`,
+        url: productUrl,
+        title: product.title
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to share product');
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -212,17 +228,22 @@ const ProductDetailsScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="chevron-back" size={28} color="#111827" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={toggleWishlist} disabled={wishlistLoading}>
-            {wishlistLoading ? (
-              <ActivityIndicator size="small" color="#FF3B30" />
-            ) : (
-              <Icon
-                name={isInWishlist ? 'heart' : 'heart-outline'}
-                size={28}
-                color={isInWishlist ? '#FF3B30' : '#111827'}
-              />
-            )}
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+            <TouchableOpacity onPress={handleShare}>
+              <Icon name="share-social-outline" size={24} color="#111827" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={toggleWishlist} disabled={wishlistLoading}>
+              {wishlistLoading ? (
+                <ActivityIndicator size="small" color="#FF3B30" />
+              ) : (
+                <Icon
+                  name={isInWishlist ? 'heart' : 'heart-outline'}
+                  size={28}
+                  color={isInWishlist ? '#FF3B30' : '#111827'}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -277,6 +298,14 @@ const ProductDetailsScreen = ({ route, navigation }) => {
           {/* Details */}
           <View style={styles.details}>
             <Text style={styles.title}>{product.title}</Text>
+
+            {/* SKU Display */}
+            {product.sku && (
+              <View style={styles.skuRow}>
+                <Text style={styles.skuLabel}>SKU: </Text>
+                <Text style={styles.skuValue}>{product.sku}</Text>
+              </View>
+            )}
 
             {/* Rating */}
             {product.averageRating > 0 && (
@@ -422,12 +451,18 @@ const ProductDetailsScreen = ({ route, navigation }) => {
           visible={showFullscreenImage}
           transparent
           animationType="fade"
-          onRequestClose={() => setShowFullscreenImage(false)}
+          onRequestClose={() => {
+            setShowFullscreenImage(false);
+            setIsZoomed(false);
+          }}
         >
           <SafeAreaView style={styles.fullscreenContainer}>
             {/* Header */}
             <View style={styles.fullscreenHeader}>
-              <TouchableOpacity onPress={() => setShowFullscreenImage(false)}>
+              <TouchableOpacity onPress={() => {
+                setShowFullscreenImage(false);
+                setIsZoomed(false);
+              }}>
                 <Icon name="close" size={28} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.fullscreenCounter}>
@@ -438,8 +473,10 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
             {/* Main Image */}
             <ScrollView
+              ref={scrollRef}
               horizontal
-              pagingEnabled
+              pagingEnabled={!isZoomed}
+              scrollEnabled={!isZoomed}
               scrollEventThrottle={16}
               onMomentumScrollEnd={(event) => {
                 const index = Math.round(
@@ -451,10 +488,11 @@ const ProductDetailsScreen = ({ route, navigation }) => {
             >
               {productImages.map((image, index) => (
                 <View key={index} style={{ width: screenWidth }}>
-                  <Image
-                    source={{ uri: getImageUrl(image) }}
+                  <ZoomableImage
+                    uri={getImageUrl(image)}
                     style={styles.fullscreenImage}
                     resizeMode="contain"
+                    onZoomChange={setIsZoomed}
                   />
                 </View>
               ))}
@@ -468,6 +506,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                   onPress={() => {
                     const newIndex = Math.max(0, selectedImageIndex - 1);
                     setSelectedImageIndex(newIndex);
+                    scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
                   }}
                 >
                   <Icon name="chevron-back" size={32} color="#fff" />
@@ -481,6 +520,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                       selectedImageIndex + 1
                     );
                     setSelectedImageIndex(newIndex);
+                    scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
                   }}
                 >
                   <Icon name="chevron-forward" size={32} color="#fff" />
@@ -495,7 +535,10 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                   {productImages.map((image, index) => (
                     <TouchableOpacity
                       key={index}
-                      onPress={() => setSelectedImageIndex(index)}
+                      onPress={() => {
+                        setSelectedImageIndex(index);
+                        scrollRef.current?.scrollTo({ x: index * screenWidth, animated: true });
+                      }}
                       style={[
                         styles.fullscreenThumbnail,
                         selectedImageIndex === index && styles.fullscreenThumbnailActive
@@ -637,6 +680,9 @@ const styles = StyleSheet.create({
   details: { padding: 16 },
   title: { fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 8 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  skuRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: '#F3F4F6', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, alignSelf: 'flex-start' },
+  skuLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+  skuValue: { fontSize: 12, fontWeight: '700', color: '#111827' },
   starsRow: { flexDirection: 'row', gap: 2 },
   ratingText: { fontSize: 14, color: '#6B7280', marginLeft: 4 },
   priceBox: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },

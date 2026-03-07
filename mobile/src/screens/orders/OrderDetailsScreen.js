@@ -236,7 +236,7 @@
 //   const { orderId } = route.params;
 //   const dispatch = useDispatch();
 //   const { selectedOrder: order, isLoading } = useSelector((state) => state.orders);
-  
+
 //   const [returnInfo, setReturnInfo] = useState(null);
 //   const [showCancelModal, setShowCancelModal] = useState(false);
 //   const [cancelReason, setCancelReason] = useState('');
@@ -249,7 +249,7 @@
 //   const loadOrderDetails = async () => {
 //     try {
 //       await dispatch(fetchOrder(orderId)).unwrap();
-      
+
 //       // Fetch return info
 //       const response = await api.get(`/orders/${orderId}`);
 //       if (response.data.data.returnInfo) {
@@ -503,7 +503,7 @@
 //       {/* Action Buttons */}
 //       <View style={styles.section}>
 //         <Text style={styles.sectionTitle}>Actions</Text>
-        
+
 //         {canCancelOrder() && (
 //           <TouchableOpacity
 //             style={styles.actionBtn}
@@ -746,12 +746,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrder } from '../../redux/slices/orderSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../../services/api';
+import CustomHeader from '../../components/CustomHeader';
 
 const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
   const dispatch = useDispatch();
   const { selectedOrder: order, isLoading } = useSelector((state) => state.orders);
-  
+
   const [returnInfo, setReturnInfo] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -760,12 +761,12 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     loadOrderDetails();
-    
+
     // Auto-refresh every 30 seconds if payment is pending
-    const interval = order?.paymentStatus === 'pending' && order?.orderStatus === 'pending' 
-      ? setInterval(loadOrderDetails, 30000) 
+    const interval = order?.paymentStatus === 'pending' && order?.orderStatus === 'pending'
+      ? setInterval(loadOrderDetails, 30000)
       : null;
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -774,7 +775,7 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
   const loadOrderDetails = async () => {
     try {
       await dispatch(fetchOrder(orderId)).unwrap();
-      
+
       const response = await api.get(`/orders/${orderId}`);
       if (response.data.data.returnInfo) {
         setReturnInfo(response.data.data.returnInfo);
@@ -785,34 +786,34 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
   };
 
   const getPaymentStatusColor = (status) => {
- const colors = {
-    pending: '#F59E0B',      // Yellow (only for online payment pending)
-    confirmed: '#10B981',    // Green (COD + paid online orders)
-    processing: '#8B5CF6',   // Purple
-    packed: '#3B82F6',       // Blue
-    shipped: '#0EA5E9',      // Light blue
-    out_for_delivery: '#06B6D4', // Cyan
-    delivered: '#059669',    // Dark green
-    cancelled: '#EF4444',    // Red
-    returned: '#F59E0B'      // Orange
-  };
+    const colors = {
+      pending: '#F59E0B',      // Yellow (only for online payment pending)
+      confirmed: '#10B981',    // Green (COD + paid online orders)
+      processing: '#8B5CF6',   // Purple
+      packed: '#3B82F6',       // Blue
+      shipped: '#0EA5E9',      // Light blue
+      out_for_delivery: '#06B6D4', // Cyan
+      delivered: '#059669',    // Dark green
+      cancelled: '#EF4444',    // Red
+      returned: '#F59E0B'      // Orange
+    };
     return colors[status] || '#9CA3AF';
   };
 
   const getStatusColor = (status) => {
-  const colors = {
-    pending: '#F59E0B',      // Yellow (only for online payment pending)
-    confirmed: '#10B981',    // Green (COD + paid online orders)
-    processing: '#8B5CF6',   // Purple
-    packed: '#3B82F6',       // Blue
-    shipped: '#0EA5E9',      // Light blue
-    out_for_delivery: '#06B6D4', // Cyan
-    delivered: '#059669',    // Dark green
-    cancelled: '#EF4444',    // Red
-    returned: '#F59E0B'      // Orange
+    const colors = {
+      pending: '#F59E0B',      // Yellow (only for online payment pending)
+      confirmed: '#10B981',    // Green (COD + paid online orders)
+      processing: '#8B5CF6',   // Purple
+      packed: '#3B82F6',       // Blue
+      shipped: '#0EA5E9',      // Light blue
+      out_for_delivery: '#06B6D4', // Cyan
+      delivered: '#059669',    // Dark green
+      cancelled: '#EF4444',    // Red
+      returned: '#F59E0B'      // Orange
+    };
+    return colors[status] || '#9CA3AF';
   };
-  return colors[status] || '#9CA3AF';
-};
 
   const getPaymentStatusIcon = (status) => {
     const icons = {
@@ -846,9 +847,9 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
             setIsRetryingPayment(true);
             try {
               // Navigate to payment gateway with existing order
-              navigation.navigate('PaymentGateway', { 
+              navigation.navigate('PaymentGateway', {
                 order: order,
-                isRetry: true 
+                isRetry: true
               });
             } catch (error) {
               Alert.alert('Error', 'Failed to open payment gateway');
@@ -927,370 +928,383 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Order Header */}
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.orderNo}>Order #{order.orderNo}</Text>
-            <Text style={styles.orderDate}>
-              {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
-            </Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: getPaymentStatusColor(order.orderStatus) }]}>
-            <Text style={styles.statusText}>
-              {order.orderStatus.replace(/_/g, ' ').toUpperCase()}
-            </Text>
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
+      <CustomHeader title="Order Details" showBack={true} />
+      <ScrollView style={styles.container}>
+        {/* Order Header */}
+        <View style={styles.header}>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.orderNo}>Order #{order.orderNo}</Text>
+              <Text style={styles.orderDate}>
+                {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: getPaymentStatusColor(order.orderStatus) }]}>
+              <Text style={styles.statusText}>
+                {order.orderStatus.replace(/_/g, ' ').toUpperCase()}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* PAYMENT STATUS - DETAILED */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Payment Information</Text>
-        
-        <View style={styles.paymentInfoCard}>
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Payment Method</Text>
-            <View style={styles.paymentMethodBadge}>
-              <Icon 
-                name={order.paymentMethod === 'cod' ? 'cash-outline' : 'card-outline'} 
-                size={16} 
-                color="#4F46E5" 
-              />
-              <Text style={styles.paymentMethodText}>
-                {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
-              </Text>
-            </View>
-          </View>
+        {/* PAYMENT STATUS - DETAILED */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Payment Information</Text>
 
-          <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Payment Status</Text>
-            <View style={[styles.paymentStatusBadge, { backgroundColor: getPaymentStatusColor(order.paymentStatus) }]}>
-              <Icon name={getPaymentStatusIcon(order.paymentStatus)} size={16} color="#fff" />
-              <Text style={styles.paymentStatusText}>
-                {order.paymentStatus.toUpperCase()}
-              </Text>
-            </View>
-          </View>
-
-          {order.paymentId && (
+          <View style={styles.paymentInfoCard}>
             <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Payment ID</Text>
-              <Text style={styles.paymentValue}>{order.paymentId}</Text>
-            </View>
-          )}
-
-          {order.paymentMethod !== 'cod' && (
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Amount Paid</Text>
-              <Text style={[styles.paymentValue, styles.amountText]}>₹{order.total}</Text>
-            </View>
-          )}
-
-          {order.razorpayPaymentId && (
-            <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Razorpay Payment ID</Text>
-              <Text style={styles.paymentValue} numberOfLines={1}>{order.razorpayPaymentId}</Text>
-            </View>
-          )}
-
-          {order.paymentError && (
-            <View style={styles.errorBox}>
-              <Icon name="alert-circle" size={20} color="#EF4444" />
-              <View style={styles.errorContent}>
-                <Text style={styles.errorTitle}>Payment Failed</Text>
-                <Text style={styles.errorText}>{order.paymentError}</Text>
+              <Text style={styles.paymentLabel}>Payment Method</Text>
+              <View style={styles.paymentMethodBadge}>
+                <Icon
+                  name={order.paymentMethod === 'cod' ? 'cash-outline' : 'card-outline'}
+                  size={16}
+                  color="#4F46E5"
+                />
+                <Text style={styles.paymentMethodText}>
+                  {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
+                </Text>
               </View>
             </View>
-          )}
-        </View>
 
-        {/* PAYMENT ACTION BUTTONS */}
-        {canRetryPayment() && (
-          <TouchableOpacity
-            style={styles.retryPaymentBtn}
-            onPress={handleRetryPayment}
-            disabled={isRetryingPayment}
-          >
-            {isRetryingPayment ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Icon name="card" size={20} color="#fff" />
-                <Text style={styles.retryPaymentText}>
-                  {order.paymentStatus === 'failed' ? 'Retry Payment' : 'Complete Payment'}
+            <View style={styles.paymentRow}>
+              <Text style={styles.paymentLabel}>Payment Status</Text>
+              <View style={[styles.paymentStatusBadge, { backgroundColor: getPaymentStatusColor(order.paymentStatus) }]}>
+                <Icon name={getPaymentStatusIcon(order.paymentStatus)} size={16} color="#fff" />
+                <Text style={styles.paymentStatusText}>
+                  {order.paymentStatus.toUpperCase()}
                 </Text>
-              </>
+              </View>
+            </View>
+
+            {order.paymentId && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Payment ID</Text>
+                <Text style={styles.paymentValue}>{order.paymentId}</Text>
+              </View>
             )}
-          </TouchableOpacity>
-        )}
 
-        {order.paymentStatus === 'failed' && order.orderStatus === 'pending' && (
-          <TouchableOpacity
-            style={styles.cancelFailedBtn}
-            onPress={handleCancelFailedOrder}
-          >
-            <Icon name="close-circle-outline" size={20} color="#EF4444" />
-            <Text style={styles.cancelFailedText}>Cancel Failed Order</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            {order.paymentMethod !== 'cod' && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Amount Paid</Text>
+                <Text style={[styles.paymentValue, styles.amountText]}>₹{order.total}</Text>
+              </View>
+            )}
 
-      {/* INTELLIGENT ALERT - Payment Pending */}
-      {order.paymentStatus === 'pending' && order.paymentMethod !== 'cod' && order.orderStatus === 'pending' && (
-        <View style={styles.alertCard}>
-          <Icon name="information-circle" size={24} color="#F59E0B" />
-          <View style={styles.alertContent}>
-            <Text style={styles.alertTitle}>Payment Pending</Text>
-            <Text style={styles.alertText}>
-              Your order is pending because payment is not completed. Please complete payment to confirm your order.
-            </Text>
-            <TouchableOpacity
-              style={styles.alertButton}
-              onPress={handleRetryPayment}
-            >
-              <Text style={styles.alertButtonText}>Complete Payment Now</Text>
-              <Icon name="arrow-forward" size={16} color="#fff" />
-            </TouchableOpacity>
+            {order.razorpayPaymentId && (
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Razorpay Payment ID</Text>
+                <Text style={styles.paymentValue} numberOfLines={1}>{order.razorpayPaymentId}</Text>
+              </View>
+            )}
+
+            {order.paymentError && (
+              <View style={styles.errorBox}>
+                <Icon name="alert-circle" size={20} color="#EF4444" />
+                <View style={styles.errorContent}>
+                  <Text style={styles.errorTitle}>Payment Failed</Text>
+                  <Text style={styles.errorText}>{order.paymentError}</Text>
+                </View>
+              </View>
+            )}
           </View>
-        </View>
-      )}
 
-      {/* Return Window Info */}
-      {returnInfo && order.orderStatus === 'delivered' && (
-        <View style={[styles.section, { backgroundColor: returnInfo.canReturn ? '#F0FDF4' : '#FEF3C7' }]}>
-          <View style={styles.returnInfoRow}>
-            <Icon 
-              name={returnInfo.canReturn ? 'time-outline' : 'alert-circle-outline'} 
-              size={20} 
-              color={returnInfo.canReturn ? '#10B981' : '#F59E0B'} 
-            />
-            <View style={styles.returnInfoText}>
-              {returnInfo.canReturn ? (
-                <>
-                  <Text style={[styles.returnInfoTitle, { color: '#10B981' }]}>
-                    Return Available
-                  </Text>
-                  <Text style={[styles.returnInfoSubtitle, { color: '#059669' }]}>
-                    {returnInfo.daysRemaining} days remaining
-                  </Text>
-                </>
+          {/* PAYMENT ACTION BUTTONS */}
+          {canRetryPayment() && (
+            <TouchableOpacity
+              style={styles.retryPaymentBtn}
+              onPress={handleRetryPayment}
+              disabled={isRetryingPayment}
+            >
+              {isRetryingPayment ? (
+                <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Text style={[styles.returnInfoTitle, { color: '#F59E0B' }]}>
-                    Return Window Expired
-                  </Text>
-                  <Text style={[styles.returnInfoSubtitle, { color: '#D97706' }]}>
-                    Return period ended on {new Date(returnInfo.windowEndDate).toLocaleDateString()}
+                  <Icon name="card" size={20} color="#fff" />
+                  <Text style={styles.retryPaymentText}>
+                    {order.paymentStatus === 'failed' ? 'Retry Payment' : 'Complete Payment'}
                   </Text>
                 </>
               )}
-            </View>
-          </View>
+            </TouchableOpacity>
+          )}
+
+          {order.paymentStatus === 'failed' && order.orderStatus === 'pending' && (
+            <TouchableOpacity
+              style={styles.cancelFailedBtn}
+              onPress={handleCancelFailedOrder}
+            >
+              <Icon name="close-circle-outline" size={20} color="#EF4444" />
+              <Text style={styles.cancelFailedText}>Cancel Failed Order</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      )}
 
-      {/* Order Status Timeline */}
-      <TouchableOpacity style={styles.section}  onPress={() => navigation.navigate('OrderTracking', { orderId: orderId })}>
-        <Text style={styles.sectionTitle}>Order Status</Text>
-        {order.statusHistory && order.statusHistory.length > 0 ? (
-          <View style={styles.statusHistory}>
-            {order.statusHistory.slice().reverse().map((history, index) => (
-              <View key={index} style={styles.historyItem}>
-                <View style={styles.historyDot}>
-                  <Icon name="checkmark-circle" size={20} color="#10B981" />
-                </View>
-                <View style={styles.historyContent}>
-                  <Text style={styles.historyStatus}>
-                    {history.to.replace(/_/g, ' ').toUpperCase()}
-                  </Text>
-                  {history.reason && (
-                    <Text style={styles.historyReason}>{history.reason}</Text>
-                  )}
-                  <Text style={styles.historyTime}>
-                    {new Date(history.changedAt).toLocaleString('en-IN')}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.noHistory}>No status updates yet</Text>
-        )}
-      </TouchableOpacity>
-
-      {/* Action Buttons */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions</Text>
-        
-        {canCancelOrder() && (
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => setShowCancelModal(true)}
-          >
-            <Icon name="close-circle-outline" size={20} color="#EF4444" />
-            <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Cancel Order</Text>
-          </TouchableOpacity>
-        )}
-
-        {order.trackingNumber && (
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('OrderTracking', { orderId: order._id })}
-          >
-            <Icon name="navigate-outline" size={20} color="#4F46E5" />
-            <Text style={styles.actionBtnText}>Track Order</Text>
-          </TouchableOpacity>
-        )}
-
-        {returnInfo?.canReturn && (
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnPrimary]}
-            onPress={() => navigation.navigate('InitiateReturn', { order })}
-          >
-            <Icon name="return-down-back-outline" size={20} color="#fff" />
-            <Text style={[styles.actionBtnText, { color: '#fff' }]}>Initiate Return</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => navigation.navigate('CreateSupportTicket', {
-            orderId: order._id,
-            orderNo: order.orderNo
-          })}
-        >
-          <Icon name="help-circle-outline" size={20} color="#4F46E5" />
-          <Text style={styles.actionBtnText}>Contact Support</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Order Items */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Items</Text>
-        {order.items.map((item, idx) => (
-          <View key={idx} style={styles.itemBox}>
-            <Text style={styles.itemName}>{item.product?.title || 'Product'}</Text>
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
-              <Text style={styles.itemPrice}>₹{item.finalPrice} each</Text>
-              {item.resellPrice > 0 && (
-                <Text style={styles.resellerMarkup}>+₹{item.resellPrice} markup</Text>
-              )}
-            </View>
-            <Text style={styles.itemTotal}>Subtotal: ₹{item.finalPrice * item.quantity}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Shipping Address */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Shipping Address</Text>
-        <View style={styles.addressBox}>
-          <Icon name="location-outline" size={20} color="#4F46E5" />
-          <View style={styles.addressContent}>
-            <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
-            <Text style={styles.addressText}>{order.shippingAddress.addressLine1}</Text>
-            {order.shippingAddress.addressLine2 && (
-              <Text style={styles.addressText}>{order.shippingAddress.addressLine2}</Text>
-            )}
-            <Text style={styles.addressText}>
-              {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}
-            </Text>
-            <Text style={styles.addressPhone}>{order.shippingAddress.phone}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Price Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Price Details</Text>
-        <View style={styles.priceRow}>
-          <Text>Subtotal</Text>
-          <Text>₹{order.subtotal}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text>Shipping</Text>
-          <Text>{order.shipping === 0 ? 'FREE' : `₹${order.shipping}`}</Text>
-        </View>
-        <View style={styles.priceRow}>
-          <Text>Tax (18%)</Text>
-          <Text>₹{order.tax}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.priceRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>₹{order.total}</Text>
-        </View>
-      </View>
-
-      <View style={{ height: 20 }} />
-
-      {/* Cancel Modal */}
-      <Modal
-        visible={showCancelModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowCancelModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Cancel Order</Text>
-              <TouchableOpacity onPress={() => setShowCancelModal(false)}>
-                <Icon name="close" size={24} color="#6B7280" />
+        {/* INTELLIGENT ALERT - Payment Pending */}
+        {order.paymentStatus === 'pending' && order.paymentMethod !== 'cod' && order.orderStatus === 'pending' && (
+          <View style={styles.alertCard}>
+            <Icon name="information-circle" size={24} color="#F59E0B" />
+            <View style={styles.alertContent}>
+              <Text style={styles.alertTitle}>Payment Pending</Text>
+              <Text style={styles.alertText}>
+                Your order is pending because payment is not completed. Please complete payment to confirm your order.
+              </Text>
+              <TouchableOpacity
+                style={styles.alertButton}
+                onPress={handleRetryPayment}
+              >
+                <Text style={styles.alertButtonText}>Complete Payment Now</Text>
+                <Icon name="arrow-forward" size={16} color="#fff" />
               </TouchableOpacity>
             </View>
+          </View>
+        )}
 
-            <View style={styles.modalContent}>
-              <Text style={styles.modalLabel}>Reason for cancellation:</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="E.g., Changed my mind, found better price..."
-                value={cancelReason}
-                onChangeText={setCancelReason}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
+        {/* Return Window Info */}
+        {returnInfo && order.orderStatus === 'delivered' && (
+          <View style={[styles.section, { backgroundColor: returnInfo.canReturn ? '#F0FDF4' : '#FEF3C7' }]}>
+            <View style={styles.returnInfoRow}>
+              <Icon
+                name={returnInfo.canReturn ? 'time-outline' : 'alert-circle-outline'}
+                size={20}
+                color={returnInfo.canReturn ? '#10B981' : '#F59E0B'}
               />
+              <View style={styles.returnInfoText}>
+                {returnInfo.canReturn ? (
+                  <>
+                    <Text style={[styles.returnInfoTitle, { color: '#10B981' }]}>
+                      Return Available
+                    </Text>
+                    <Text style={[styles.returnInfoSubtitle, { color: '#059669' }]}>
+                      {returnInfo.daysRemaining} days remaining
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={[styles.returnInfoTitle, { color: '#F59E0B' }]}>
+                      Return Window Expired
+                    </Text>
+                    <Text style={[styles.returnInfoSubtitle, { color: '#D97706' }]}>
+                      Return period ended on {new Date(returnInfo.windowEndDate).toLocaleDateString()}
+                    </Text>
+                  </>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
 
-              <Text style={styles.modalNote}>
-                Note: Stock will be restored and if payment was made, refund will be processed.
+        {/* Order Status Timeline */}
+        <TouchableOpacity style={styles.section} onPress={() => navigation.navigate('OrderTracking', { orderId: orderId })}>
+          <Text style={styles.sectionTitle}>Order Status</Text>
+          {order.statusHistory && order.statusHistory.length > 0 ? (
+            <View style={styles.statusHistory}>
+              {order.statusHistory.slice().reverse().map((history, index) => (
+                <View key={index} style={styles.historyItem}>
+                  <View style={styles.historyDot}>
+                    <Icon name="checkmark-circle" size={20} color="#10B981" />
+                  </View>
+                  <View style={styles.historyContent}>
+                    <Text style={styles.historyStatus}>
+                      {history.to.replace(/_/g, ' ').toUpperCase()}
+                    </Text>
+                    {history.reason && (
+                      <Text style={styles.historyReason}>{history.reason}</Text>
+                    )}
+                    <Text style={styles.historyTime}>
+                      {new Date(history.changedAt).toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.noHistory}>No status updates yet</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Action Buttons */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Actions</Text>
+
+          {canCancelOrder() && (
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => setShowCancelModal(true)}
+            >
+              <Icon name="close-circle-outline" size={20} color="#EF4444" />
+              <Text style={[styles.actionBtnText, { color: '#EF4444' }]}>Cancel Order</Text>
+            </TouchableOpacity>
+          )}
+
+          {order.trackingNumber && (
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => navigation.navigate('OrderTracking', { orderId: order._id })}
+            >
+              <Icon name="navigate-outline" size={20} color="#4F46E5" />
+              <Text style={styles.actionBtnText}>Track Order</Text>
+            </TouchableOpacity>
+          )}
+
+          {returnInfo?.canReturn && (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnPrimary]}
+              onPress={() => navigation.navigate('InitiateReturn', { order })}
+            >
+              <Icon name="return-down-back-outline" size={20} color="#fff" />
+              <Text style={[styles.actionBtnText, { color: '#fff' }]}>Initiate Return</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('CreateSupportTicket', {
+              orderId: order._id,
+              orderNo: order.orderNo
+            })}
+          >
+            <Icon name="help-circle-outline" size={20} color="#4F46E5" />
+            <Text style={styles.actionBtnText}>Contact Support</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Order Items */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Order Items</Text>
+          {order.items.map((item, idx) => (
+            <View key={idx} style={styles.itemBox}>
+              <Text style={styles.itemName}>{item.product?.title || 'Product'}</Text>
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
+                <Text style={styles.itemPrice}>₹{item.finalPrice} each</Text>
+                {item.resellPrice > 0 && (
+                  <Text style={styles.resellerMarkup}>+₹{item.resellPrice} markup</Text>
+                )}
+              </View>
+              <Text style={styles.itemTotal}>Subtotal: ₹{item.finalPrice * item.quantity}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Shipping Address */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Shipping Address</Text>
+          <View style={styles.addressBox}>
+            <Icon name="location-outline" size={20} color="#4F46E5" />
+            <View style={styles.addressContent}>
+              <Text style={styles.addressName}>{order.shippingAddress.name}</Text>
+              <Text style={styles.addressText}>{order.shippingAddress.addressLine1}</Text>
+              {order.shippingAddress.addressLine2 && (
+                <Text style={styles.addressText}>{order.shippingAddress.addressLine2}</Text>
+              )}
+              <Text style={styles.addressText}>
+                {order.shippingAddress.city}, {order.shippingAddress.state} - {order.shippingAddress.pincode}
+              </Text>
+              <Text style={styles.addressPhone}>{order.shippingAddress.phone}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Price Details */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Price Details</Text>
+          <View style={styles.priceRow}>
+            <Text>Subtotal</Text>
+            <Text>₹{order.subtotal}</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text>Shipping</Text>
+            <Text>{order.shipping === 0 ? 'FREE' : `₹${order.shipping}`}</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text>Tax (18%)</Text>
+            <Text>₹{order.tax}</Text>
+          </View>
+          {order.coupon && order.coupon.code && (
+            <View style={styles.priceRow}>
+              <Text style={{ color: '#10B981', fontWeight: '600' }}>
+                Discount ({order.coupon.code})
+              </Text>
+              <Text style={{ color: '#10B981', fontWeight: '600' }}>
+                -₹{order.coupon.discountAmount}
               </Text>
             </View>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalBtnSecondary}
-                onPress={() => setShowCancelModal(false)}
-                disabled={isCancelling}
-              >
-                <Text style={styles.modalBtnSecondaryText}>Go Back</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalBtnDanger, isCancelling && styles.modalBtnDisabled]}
-                onPress={handleCancelOrder}
-                disabled={isCancelling}
-              >
-                {isCancelling ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.modalBtnDangerText}>Cancel Order</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+          )}
+          <View style={styles.divider} />
+          <View style={styles.priceRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>₹{order.total}</Text>
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+
+        <View style={{ height: 20 }} />
+
+        {/* Cancel Modal */}
+        <Modal
+          visible={showCancelModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowCancelModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Cancel Order</Text>
+                <TouchableOpacity onPress={() => setShowCancelModal(false)}>
+                  <Icon name="close" size={24} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalContent}>
+                <Text style={styles.modalLabel}>Reason for cancellation:</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="E.g., Changed my mind, found better price..."
+                  value={cancelReason}
+                  onChangeText={setCancelReason}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <Text style={styles.modalNote}>
+                  Note: Stock will be restored and if payment was made, refund will be processed.
+                </Text>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalBtnSecondary}
+                  onPress={() => setShowCancelModal(false)}
+                  disabled={isCancelling}
+                >
+                  <Text style={styles.modalBtnSecondaryText}>Go Back</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalBtnDanger, isCancelling && styles.modalBtnDisabled]}
+                  onPress={handleCancelOrder}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.modalBtnDangerText}>Cancel Order</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -1305,7 +1319,7 @@ const styles = StyleSheet.create({
   statusText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   section: { backgroundColor: '#fff', padding: 16, marginBottom: 8 },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  
+
   // Payment Info Styles
   paymentInfoCard: { backgroundColor: '#F9FAFB', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   paymentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
@@ -1324,7 +1338,7 @@ const styles = StyleSheet.create({
   retryPaymentText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   cancelFailedBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#fff', borderWidth: 2, borderColor: '#EF4444', paddingVertical: 14, borderRadius: 8, marginTop: 8 },
   cancelFailedText: { color: '#EF4444', fontSize: 15, fontWeight: '600' },
-  
+
   // Alert Card
   alertCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FEF3C7', padding: 16, margin: 16, marginTop: 0, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: '#F59E0B' },
   alertContent: { flex: 1 },
@@ -1332,7 +1346,7 @@ const styles = StyleSheet.create({
   alertText: { fontSize: 13, color: '#78350F', lineHeight: 18, marginBottom: 12 },
   alertButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F59E0B', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignSelf: 'flex-start' },
   alertButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  
+
   // Status History
   statusHistory: { gap: 16 },
   historyItem: { flexDirection: 'row', gap: 12 },
@@ -1342,7 +1356,7 @@ const styles = StyleSheet.create({
   historyReason: { fontSize: 13, color: '#6B7280', marginBottom: 4 },
   historyTime: { fontSize: 12, color: '#9CA3AF' },
   noHistory: { fontSize: 14, color: '#9CA3AF', textAlign: 'center', paddingVertical: 20 },
-  
+
   returnInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   returnInfoText: { flex: 1 },
   returnInfoTitle: { fontSize: 15, fontWeight: '600' },

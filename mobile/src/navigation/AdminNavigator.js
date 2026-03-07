@@ -14,6 +14,10 @@ import CategoryManagementScreen from '../screens/admin/CategoryManagementScreen'
 import BannerManagementScreen from '../screens/admin/BannerManagementScreen';
 import ShiprocketSettingsScreen from '../screens/admin/ShiprocketSettingsScreen';
 import AdminProfileScreen from '../screens/admin/AdminProfileScreen';
+import AdminWithdrawalsScreen from '../screens/admin/AdminWithdrawalsScreen';
+import AdminResellerApplicationsScreen from '../screens/admin/AdminResellerApplicationsScreen';
+import CouponManagementScreen from '../screens/admin/CouponManagementScreen';
+import GeneralSettingsScreen from '../screens/admin/GeneralSettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -40,10 +44,14 @@ const ProductsStack = () => (
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="AdminProfile" component={AdminProfileScreen} />
+    <Stack.Screen name="GeneralSettings" component={GeneralSettingsScreen} />
     <Stack.Screen name="ProductManagement" component={AdminProductManagementScreen} />
     <Stack.Screen name="CategoryManagement" component={CategoryManagementScreen} />
     <Stack.Screen name="BannerManagement" component={BannerManagementScreen} />
     <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
+    <Stack.Screen name="AdminWithdrawals" component={AdminWithdrawalsScreen} />
+    <Stack.Screen name="AdminResellerApplications" component={AdminResellerApplicationsScreen} />
+    <Stack.Screen name="CouponManagement" component={CouponManagementScreen} />
     <Stack.Screen name="OrdersDashboard" component={OrdersDashboardScreen} />
     <Stack.Screen name="AddProduct" component={AddProductScreen} />
   </Stack.Navigator>
