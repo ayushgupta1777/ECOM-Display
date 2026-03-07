@@ -8,18 +8,49 @@ import api from '../../services/api';
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+  async (loginData, { rejectWithValue }) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', loginData);
       const { token, user } = response.data.data;
-      
-      // Save token to AsyncStorage
+
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      
+
       return { token, user };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
+    }
+  }
+);
+
+export const requestOTP = createAsyncThunk(
+  'auth/requestOTP',
+  async ({ phone, type }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/send-otp', { phone, type });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to send OTP');
+    }
+  }
+);
+
+export const verifyOTP = createAsyncThunk(
+  'auth/verifyOTP',
+  async ({ phone, otp }, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/verify-otp', { phone, otp });
+      const { data } = response.data;
+
+      if (data.token) {
+        // Auto-logged in
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'OTP verification failed');
     }
   }
 );
@@ -30,10 +61,10 @@ export const register = createAsyncThunk(
     try {
       const response = await api.post('/auth/register', userData);
       const { token, user } = response.data.data;
-      
+
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      
+
       return { token, user };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
@@ -49,7 +80,7 @@ export const logout = createAsyncThunk('auth/logout', async () => {
 export const loadUser = createAsyncThunk('auth/loadUser', async () => {
   const token = await AsyncStorage.getItem('token');
   const user = await AsyncStorage.getItem('user');
-  
+
   if (token && user) {
     return { token, user: JSON.parse(user) };
   }
@@ -70,15 +101,15 @@ const authSlice = createSlice({
       state.error = null;
     },
     updateUser: (state, action) => {
-    state.user = action.payload;
-    // Optionally persist to AsyncStorage
-    // AsyncStorage.setItem('user', JSON.stringify(action.payload));
+      state.user = action.payload;
+      // Optionally persist to AsyncStorage
+      // AsyncStorage.setItem('user', JSON.stringify(action.payload));
     },
     updateToken: (state, action) => {
-    state.token = action.payload;
-    // Optionally persist to AsyncStorage
-    // AsyncStorage.setItem('token', action.payload);
-  },
+      state.token = action.payload;
+      // Optionally persist to AsyncStorage
+      // AsyncStorage.setItem('token', action.payload);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -117,6 +148,23 @@ const authSlice = createSlice({
         state.token = null;
         state.user = null;
         state.isAuthenticated = false;
+      })
+      // Verify OTP
+      .addCase(verifyOTP.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(verifyOTP.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.token) {
+          state.isAuthenticated = true;
+          state.token = action.payload.token;
+          state.user = action.payload.user;
+        }
+      })
+      .addCase(verifyOTP.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
       // Load User
       .addCase(loadUser.fulfilled, (state, action) => {
