@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createOrder } from '../../redux/slices/orderSlice';
 import { fetchCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../../services/api';
+import api, { getImageUrl } from '../../services/api';
 
 const CheckoutScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -279,7 +279,7 @@ const CheckoutScreen = ({ navigation }) => {
             <View key={item._id} style={styles.itemRow}>
               <View style={styles.itemImageContainer}>
                 <Image
-                  source={{ uri: item.product?.images?.[0] || 'https://via.placeholder.com/150' }}
+                  source={{ uri: item.product?.images?.[0] ? getImageUrl(item.product.images[0]) : 'https://via.placeholder.com/150' }}
                   style={styles.itemImage}
                   resizeMode="cover"
                 />
@@ -528,7 +528,7 @@ const CheckoutScreen = ({ navigation }) => {
                   <View key={item._id} style={styles.confirmItem}>
                     <View style={styles.confirmItemImageContainer}>
                       <Image
-                        source={{ uri: item.product?.images?.[0] || 'https://via.placeholder.com/150' }}
+                        source={{ uri: item.product?.images?.[0] ? getImageUrl(item.product.images[0]) : 'https://via.placeholder.com/150' }}
                         style={styles.confirmItemImage}
                         resizeMode="cover"
                       />
