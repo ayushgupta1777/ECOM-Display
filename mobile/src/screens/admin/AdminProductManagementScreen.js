@@ -16,12 +16,48 @@ const AdminProductManagementScreen = ({ navigation }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Category Filters
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState('all');
+
+  // Fetch Categories on Mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/categories');
+      // Root categories don't have a parent
+      const rootCategories = response.data.data.filter(cat => !cat.parent);
+      setCategories(rootCategories);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  // Fetch Subcategories when Category Changes
+  const fetchSubcategories = async (categoryId) => {
+    if (!categoryId || categoryId === 'all') {
+      setSubcategories([]);
+      return;
+    }
+    try {
+      const response = await api.get(`/categories/${categoryId}/subcategories`);
+      setSubcategories(response.data.data);
+    } catch (error) {
+      console.error('Failed to fetch subcategories:', error);
+    }
+  };
+
   // Refresh when screen focuses or filter changes
   useFocusEffect(
     useCallback(() => {
       setPage(1);
       fetchProducts(1, true);
-    }, [filter])
+    }, [filter, selectedCategory, selectedSubcategory])
   );
 
   // Debounced Search
@@ -51,6 +87,8 @@ const AdminProductManagementScreen = ({ navigation }) => {
       const response = await api.get('/admin/products', {
         params: {
           status: filter !== 'all' ? filter : undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          subcategory: selectedSubcategory !== 'all' ? selectedSubcategory : undefined,
           page: pageNumber,
           limit: 20,
           search: currentSearch || undefined
@@ -167,8 +205,8 @@ const AdminProductManagementScreen = ({ navigation }) => {
         )}
       </View>
 
-      {/* Filters */}
-      <View style={{ height: 60 }}>
+      {/* Status Filters */}
+      <View style={{ height: 50, marginTop: 12 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -194,6 +232,94 @@ const AdminProductManagementScreen = ({ navigation }) => {
           ))}
         </ScrollView>
       </View>
+
+      {/* Category Filters */}
+      <View style={{ height: 50, marginBottom: 8 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+          contentContainerStyle={{ alignItems: 'center', paddingRight: 16 }}
+        >
+          <TouchableOpacity
+            style={[
+              styles.categoryChip,
+              selectedCategory === 'all' && styles.categoryChipActive
+            ]}
+            onPress={() => {
+              setSelectedCategory('all');
+              setSelectedSubcategory('all');
+              setSubcategories([]);
+            }}
+          >
+            <Text style={[
+              styles.categoryChipText,
+              selectedCategory === 'all' && styles.categoryChipTextActive
+            ]}>All Categories</Text>
+          </TouchableOpacity>
+
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat._id}
+              style={[
+                styles.categoryChip,
+                selectedCategory === cat._id && styles.categoryChipActive
+              ]}
+              onPress={() => {
+                setSelectedCategory(cat._id);
+                setSelectedSubcategory('all');
+                fetchSubcategories(cat._id);
+              }}
+            >
+              <Text style={[
+                styles.categoryChipText,
+                selectedCategory === cat._id && styles.categoryChipTextActive
+              ]}>{cat.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Subcategory Filters */}
+      {subcategories.length > 0 && (
+        <View style={{ height: 50, marginBottom: 12 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersContainer}
+            contentContainerStyle={{ alignItems: 'center', paddingRight: 16 }}
+          >
+            <TouchableOpacity
+              style={[
+                styles.subcategoryChip,
+                selectedSubcategory === 'all' && styles.subcategoryChipActive
+              ]}
+              onPress={() => setSelectedSubcategory('all')}
+            >
+              <Text style={[
+                styles.subcategoryChipText,
+                selectedSubcategory === 'all' && styles.subcategoryChipTextActive
+              ]}>All Subcategories</Text>
+            </TouchableOpacity>
+
+            {subcategories.map((subcat) => (
+              <TouchableOpacity
+                key={subcat._id}
+                style={[
+                  styles.subcategoryChip,
+                  selectedSubcategory === subcat._id && styles.subcategoryChipActive
+                ]}
+                onPress={() => setSelectedSubcategory(subcat._id)}
+              >
+                <Text style={[
+                  styles.subcategoryChipText,
+                  selectedSubcategory === subcat._id && styles.subcategoryChipTextActive
+                ]}>{subcat.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Products List */}
       <FlatList
@@ -382,6 +508,48 @@ const styles = StyleSheet.create({
     color: '#6B7280'
   },
   filterChipTextActive: {
+    color: '#fff'
+  },
+  categoryChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 34,
+  },
+  categoryChipActive: {
+    backgroundColor: '#F59E0B',
+  },
+  categoryChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563'
+  },
+  categoryChipTextActive: {
+    color: '#fff'
+  },
+  subcategoryChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    marginRight: 8,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 32,
+  },
+  subcategoryChipActive: {
+    backgroundColor: '#10B981',
+  },
+  subcategoryChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151'
+  },
+  subcategoryChipTextActive: {
     color: '#fff'
   },
   productCard: {
