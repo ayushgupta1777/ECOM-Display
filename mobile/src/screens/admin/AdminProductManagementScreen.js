@@ -29,18 +29,18 @@ const AdminProductManagementScreen = ({ navigation }) => {
     const delayDebounceFn = setTimeout(() => {
       if (searchQuery) {
         setPage(1);
-        fetchProducts(1, true);
-      } else if (searchQuery === '' && products.length > 0) {
-        // Only reset if it was previously filtered
+        fetchProducts(1, true, searchQuery);
+      } else if (searchQuery === '') {
+        // Unconditionally reset if it was cleared
         setPage(1);
-        fetchProducts(1, true);
+        fetchProducts(1, true, '');
       }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  const fetchProducts = async (pageNumber = 1, shouldReset = false) => {
+  const fetchProducts = async (pageNumber = 1, shouldReset = false, currentSearch = searchQuery) => {
     try {
       if (pageNumber === 1) {
         setIsLoading(true);
@@ -53,7 +53,7 @@ const AdminProductManagementScreen = ({ navigation }) => {
           status: filter !== 'all' ? filter : undefined,
           page: pageNumber,
           limit: 20,
-          search: searchQuery || undefined
+          search: currentSearch || undefined
         }
       });
 
@@ -76,13 +76,13 @@ const AdminProductManagementScreen = ({ navigation }) => {
 
   const handleLoadMore = () => {
     if (!isMoreLoading && page < totalPages) {
-      fetchProducts(page + 1);
+      fetchProducts(page + 1, false, searchQuery);
     }
   };
 
   const handleSearch = () => {
     setPage(1);
-    fetchProducts(1, true);
+    fetchProducts(1, true, searchQuery);
   };
 
   const handleDelete = (productId) => {
@@ -160,7 +160,7 @@ const AdminProductManagementScreen = ({ navigation }) => {
           <TouchableOpacity onPress={() => {
             setSearchQuery('');
             setPage(1);
-            fetchProducts(1, true);
+            fetchProducts(1, true, '');
           }}>
             <Icon name="close-circle" size={20} color="#9CA3AF" />
           </TouchableOpacity>
