@@ -14,6 +14,7 @@ import { addToCart } from '../../redux/slices/cartSlice';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api, { getImageUrl, BASE_URL } from '../../services/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ZoomableImage from '../../components/ZoomableImage';
 
 const screenWidth = Dimensions.get('window').width;
@@ -456,104 +457,106 @@ const ProductDetailsScreen = ({ route, navigation }) => {
             setIsZoomed(false);
           }}
         >
-          <SafeAreaView style={styles.fullscreenContainer}>
-            {/* Header */}
-            <View style={styles.fullscreenHeader}>
-              <TouchableOpacity onPress={() => {
-                setShowFullscreenImage(false);
-                setIsZoomed(false);
-              }}>
-                <Icon name="close" size={28} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.fullscreenCounter}>
-                {selectedImageIndex + 1} / {productImages.length}
-              </Text>
-              <View style={{ width: 28 }} />
-            </View>
-
-            {/* Main Image */}
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              pagingEnabled={!isZoomed}
-              scrollEnabled={!isZoomed}
-              scrollEventThrottle={16}
-              onMomentumScrollEnd={(event) => {
-                const index = Math.round(
-                  event.nativeEvent.contentOffset.x / screenWidth
-                );
-                setSelectedImageIndex(index);
-              }}
-              scrollIndicatorInsets={{ right: 1 }}
-            >
-              {productImages.map((image, index) => (
-                <View key={index} style={{ width: screenWidth }}>
-                  <ZoomableImage
-                    uri={getImageUrl(image)}
-                    style={styles.fullscreenImage}
-                    resizeMode="contain"
-                    onZoomChange={setIsZoomed}
-                  />
-                </View>
-              ))}
-            </ScrollView>
-
-            {/* Navigation Arrows */}
-            {productImages.length > 1 && (
-              <>
-                <TouchableOpacity
-                  style={[styles.arrowButton, styles.arrowLeft]}
-                  onPress={() => {
-                    const newIndex = Math.max(0, selectedImageIndex - 1);
-                    setSelectedImageIndex(newIndex);
-                    scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
-                  }}
-                >
-                  <Icon name="chevron-back" size={32} color="#fff" />
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaView style={styles.fullscreenContainer}>
+              {/* Header */}
+              <View style={styles.fullscreenHeader}>
+                <TouchableOpacity onPress={() => {
+                  setShowFullscreenImage(false);
+                  setIsZoomed(false);
+                }}>
+                  <Icon name="close" size={28} color="#fff" />
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.arrowButton, styles.arrowRight]}
-                  onPress={() => {
-                    const newIndex = Math.min(
-                      productImages.length - 1,
-                      selectedImageIndex + 1
-                    );
-                    setSelectedImageIndex(newIndex);
-                    scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
-                  }}
-                >
-                  <Icon name="chevron-forward" size={32} color="#fff" />
-                </TouchableOpacity>
-              </>
-            )}
-
-            {/* Thumbnail Gallery at Bottom */}
-            {productImages.length > 1 && (
-              <View style={styles.fullscreenThumbnails}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {productImages.map((image, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        setSelectedImageIndex(index);
-                        scrollRef.current?.scrollTo({ x: index * screenWidth, animated: true });
-                      }}
-                      style={[
-                        styles.fullscreenThumbnail,
-                        selectedImageIndex === index && styles.fullscreenThumbnailActive
-                      ]}
-                    >
-                      <Image
-                        source={{ uri: getImageUrl(image) }}
-                        style={styles.fullscreenThumbnailImage}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <Text style={styles.fullscreenCounter}>
+                  {selectedImageIndex + 1} / {productImages.length}
+                </Text>
+                <View style={{ width: 28 }} />
               </View>
-            )}
-          </SafeAreaView>
+
+              {/* Main Image */}
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                pagingEnabled={!isZoomed}
+                scrollEnabled={!isZoomed}
+                scrollEventThrottle={16}
+                onMomentumScrollEnd={(event) => {
+                  const index = Math.round(
+                    event.nativeEvent.contentOffset.x / screenWidth
+                  );
+                  setSelectedImageIndex(index);
+                }}
+                scrollIndicatorInsets={{ right: 1 }}
+              >
+                {productImages.map((image, index) => (
+                  <View key={index} style={{ width: screenWidth }}>
+                    <ZoomableImage
+                      uri={getImageUrl(image)}
+                      style={styles.fullscreenImage}
+                      resizeMode="contain"
+                      onZoomChange={setIsZoomed}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Navigation Arrows */}
+              {productImages.length > 1 && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.arrowButton, styles.arrowLeft]}
+                    onPress={() => {
+                      const newIndex = Math.max(0, selectedImageIndex - 1);
+                      setSelectedImageIndex(newIndex);
+                      scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
+                    }}
+                  >
+                    <Icon name="chevron-back" size={32} color="#fff" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.arrowButton, styles.arrowRight]}
+                    onPress={() => {
+                      const newIndex = Math.min(
+                        productImages.length - 1,
+                        selectedImageIndex + 1
+                      );
+                      setSelectedImageIndex(newIndex);
+                      scrollRef.current?.scrollTo({ x: newIndex * screenWidth, animated: true });
+                    }}
+                  >
+                    <Icon name="chevron-forward" size={32} color="#fff" />
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* Thumbnail Gallery at Bottom */}
+              {productImages.length > 1 && (
+                <View style={styles.fullscreenThumbnails}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {productImages.map((image, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => {
+                          setSelectedImageIndex(index);
+                          scrollRef.current?.scrollTo({ x: index * screenWidth, animated: true });
+                        }}
+                        style={[
+                          styles.fullscreenThumbnail,
+                          selectedImageIndex === index && styles.fullscreenThumbnailActive
+                        ]}
+                      >
+                        <Image
+                          source={{ uri: getImageUrl(image) }}
+                          style={styles.fullscreenThumbnailImage}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </SafeAreaView>
+          </GestureHandlerRootView>
         </Modal>
 
         {/* Review Modal */}
