@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "517869912864",
-    "project_id": "flipcomx",
-    "storage_bucket": "flipcomx.firebasestorage.app"
+    "project_number": "898387401992",
+    "project_id": "new-raj-fancy-store",
+    "storage_bucket": "new-raj-fancy-store.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:517869912864:android:f322cec838cfc573a2cd45",
+        "mobilesdk_app_id": "1:898387401992:android:12574c5c8ba510375fe0bd",
         "android_client_info": {
-          "package_name": "com.mobile"
+          "package_name": "com.newrajfancystore.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCPj2BodhHjamsqq6nDvUHrMu2Keh4Rdzg"
+          "current_key": "AIzaSyDGXR-RTuIad8wnwKO0hZXTpiIP66DT8r0"
         }
       ],
       "services": {
