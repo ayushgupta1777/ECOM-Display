@@ -15,26 +15,35 @@ import {
   BackHandler
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { register, requestOTP, verifyOTP, clearError } from '../../redux/slices/authSlice';
+import { register, clearError } from '../../redux/slices/authSlice';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../../styling/screens/auth/RegisterScreenPremiumStyles';
 
 const RegisterScreen = ({ navigation }) => {
-  const [step, setStep] = useState(1); // 1: Phone, 2: OTP, 3: Profile
+  const [step, setStep] = useState(1); // 1: Google Auth, 2: Phone, 3: Password
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    googleId: '',
+    profileImage: '',
     password: '',
     confirmPassword: '',
     role: 'customer'
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [timer, setTimer] = useState(0);
 
   const dispatch = useDispatch();
   const { isLoading, error } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      webClientId: '898387401992-2lohdfq6nabu10ak96c3ovis8uehres5.apps.googleusercontent.com', // User needs to replace this
+      offlineAccess: true,
+    });
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -44,16 +53,8 @@ const RegisterScreen = ({ navigation }) => {
   }, [error]);
 
   useEffect(() => {
-    let interval;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  useEffect(() => {
     const backAction = () => {
-      if (step > 1 && step < 3) {
+      if (step > 1 && step <= 3) {
         setStep(step - 1);
         return true;
       }
@@ -63,41 +64,47 @@ const RegisterScreen = ({ navigation }) => {
     return () => backHandler.remove();
   }, [step]);
 
-  const handleSendOTP = async () => {
-    if (!phone || phone.length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
-      return;
-    }
-    const result = await dispatch(requestOTP({ phone, type: 'signup' }));
-    if (requestOTP.fulfilled.match(result)) {
-      setStep(2);
-      setTimer(60);
-      Alert.alert('OTP Sent', 'Please verify your phone number to continue.');
-    }
-  };
+  const handleGoogleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const userInfo = response.data ? response.data : response; // Handle different package versions
+      const user = userInfo.user || userInfo;
 
-  const handleVerifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
-      Alert.alert('Error', 'Invalid OTP');
-      return;
-    }
-    const result = await dispatch(verifyOTP({ phone, otp }));
-    if (verifyOTP.fulfilled.match(result)) {
-      if (result.payload.isNewUser) {
-        setStep(3);
+      setFormData(prev => ({
+        ...prev,
+        email: user.email || '',
+        name: user.name || '',
+        googleId: user.id || '',
+        profileImage: user.photo || ''
+      }));
+      setStep(2);
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Error', 'Play services not available or outdated');
       } else {
-        Alert.alert('Account Exists', 'This phone number is already registered. Please log in.', [
-          { text: 'Login', onPress: () => navigation.navigate('Login') }
-        ]);
+        Alert.alert('Google Sign-In Error', error.message || 'Something went wrong');
       }
     }
   };
 
-  const handleRegister = () => {
-    const { name, email, password, confirmPassword, role } = formData;
+  const validatePhoneAndContinue = () => {
+    if (!phone || phone.length < 10) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return;
+    }
+    setStep(3);
+  };
 
-    if (!name || !password) {
-      Alert.alert('Error', 'Name and Password are required');
+  const handleRegister = () => {
+    const { name, email, googleId, profileImage, password, confirmPassword, role } = formData;
+
+    if (!password) {
+      Alert.alert('Error', 'Password is required');
       return;
     }
 
@@ -106,7 +113,15 @@ const RegisterScreen = ({ navigation }) => {
       return;
     }
 
-    dispatch(register({ name, email, password, phone, role }));
+    dispatch(register({
+      name,
+      email,
+      googleId,
+      profileImage,
+      phone,
+      password,
+      role
+    }));
   };
 
   const updateFormData = (field, value) => {
@@ -126,7 +141,9 @@ const RegisterScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles['register-premium-scroll']} showsVerticalScrollIndicator={false}>
         <View style={styles['register-premium-header']}>
           <Text style={styles['register-premium-title']}>Join Us</Text>
-          <Text style={styles['register-premium-subtitle']}>Step {step} of 3: {step === 1 ? 'Phone Verification' : step === 2 ? 'Enter OTP' : 'Complete Profile'}</Text>
+          <Text style={styles['register-premium-subtitle']}>
+            Step {step} of 3: {step === 1 ? 'Verify Google' : step === 2 ? 'Mobile Number' : 'Create Password'}
+          </Text>
         </View>
 
         <View style={styles['register-premium-form']}>
@@ -134,8 +151,22 @@ const RegisterScreen = ({ navigation }) => {
 
           {step === 1 && (
             <View>
+              <Text style={{ textAlign: 'center', marginBottom: 20, color: '#6B7280' }}>
+                Quickly sign up using your Google account. Your email will be automatically verified.
+              </Text>
+
+              <TouchableOpacity style={[styles['register-premium-button'], { backgroundColor: '#4285F4' }]} onPress={handleGoogleSignIn}>
+                <Icon name="logo-google" size={20} color="#fff" style={{ marginRight: 10 }} />
+                <Text style={styles['register-premium-button-text']}>Continue with Google</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {step === 2 && (
+            <View>
               <View style={styles['register-premium-input-group']}>
                 <Text style={styles['register-premium-input-label']}>Phone Number</Text>
+                <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10 }}>We need your mobile number for shipping and delivery updates.</Text>
                 <View style={styles['register-premium-input-container']}>
                   <Icon name="call-outline" size={20} color="#5E5CE6" style={styles['register-premium-input-icon']} />
                   <TextInput
@@ -148,49 +179,9 @@ const RegisterScreen = ({ navigation }) => {
                   />
                 </View>
               </View>
-              <TouchableOpacity style={styles['register-premium-button']} onPress={handleSendOTP} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : (
-                  <>
-                    <Text style={styles['register-premium-button-text']}>Continue</Text>
-                    <Icon name="arrow-forward" size={20} color="#fff" />
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {step === 2 && (
-            <View>
-              <View style={styles['register-premium-input-group']}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={styles['register-premium-input-label']}>Enter OTP</Text>
-                  <TouchableOpacity disabled={timer > 0} onPress={handleSendOTP}>
-                    <Text style={{ color: timer > 0 ? '#9CA3AF' : '#5E5CE6', fontSize: 12 }}>{timer > 0 ? `Resend in ${timer}s` : 'Resend'}</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles['register-premium-input-container']}>
-                  <Icon name="shield-checkmark-outline" size={20} color="#5E5CE6" style={styles['register-premium-input-icon']} />
-                  <TextInput
-                    style={styles['register-premium-input-field']}
-                    placeholder="6-digit code"
-                    placeholderTextColor="#9CA3AF"
-                    value={otp}
-                    onChangeText={setOtp}
-                    keyboardType="numeric"
-                    maxLength={6}
-                  />
-                </View>
-              </View>
-              <TouchableOpacity style={styles['register-premium-button']} onPress={handleVerifyOTP} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : (
-                  <>
-                    <Text style={styles['register-premium-button-text']}>Verify OTP</Text>
-                    <Icon name="checkmark-done" size={20} color="#fff" />
-                  </>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setStep(1)} style={{ alignItems: 'center', marginTop: 15 }}>
-                <Text style={{ color: '#6B7280' }}>Change Phone Number</Text>
+              <TouchableOpacity style={styles['register-premium-button']} onPress={validatePhoneAndContinue}>
+                <Text style={styles['register-premium-button-text']}>Continue</Text>
+                <Icon name="arrow-forward" size={20} color="#fff" />
               </TouchableOpacity>
             </View>
           )}
@@ -198,35 +189,8 @@ const RegisterScreen = ({ navigation }) => {
           {step === 3 && (
             <View>
               <View style={styles['register-premium-input-group']}>
-                <Text style={styles['register-premium-input-label']}>Full Name</Text>
-                <View style={styles['register-premium-input-container']}>
-                  <Icon name="person-outline" size={20} color="#5E5CE6" style={styles['register-premium-input-icon']} />
-                  <TextInput
-                    style={styles['register-premium-input-field']}
-                    placeholder="Your Name"
-                    value={formData.name}
-                    onChangeText={(v) => updateFormData('name', v)}
-                  />
-                </View>
-              </View>
-
-              <View style={styles['register-premium-input-group']}>
-                <Text style={styles['register-premium-input-label']}>Email Address (Optional)</Text>
-                <View style={styles['register-premium-input-container']}>
-                  <Icon name="mail-outline" size={20} color="#5E5CE6" style={styles['register-premium-input-icon']} />
-                  <TextInput
-                    style={styles['register-premium-input-field']}
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChangeText={(v) => updateFormData('email', v)}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              </View>
-
-              <View style={styles['register-premium-input-group']}>
                 <Text style={styles['register-premium-input-label']}>Create Password</Text>
+                <Text style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10 }}>Create a password so you can also log in using your email and password later.</Text>
                 <View style={styles['register-premium-input-container']}>
                   <Icon name="lock-closed-outline" size={20} color="#5E5CE6" style={styles['register-premium-input-icon']} />
                   <TextInput
