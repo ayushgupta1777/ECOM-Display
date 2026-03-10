@@ -12,306 +12,307 @@ const SearchScreen = ({ navigation }) => {
     products: [],
     categories: [],
     subcategories: []
+  });
   const [recentSearches, setRecentSearches] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [suggestions, setSuggestions] = useState([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-    useEffect(() => {
-  if (query.trim().length > 1) {
-    const debounce = setTimeout(() => {
-      handleSearch();
-      fetchSuggestions();
-    }, 500);
-    return () => clearTimeout(debounce);
-  } else {
-    setResults({ products: [], categories: [], subcategories: [] });
-    setSuggestions([]);
-    setShowSuggestions(false);
-  }
-}, [query]);
-
-const handleSearch = async () => {
-  try {
-    setIsLoading(true);
-    setShowSuggestions(false);
-    const response = await api.get('/search', {
-      params: { query }
-    });
-    setResults(response.data.data);
-
-    // Save to recent searches
-    if (query && query.trim() !== '' && !recentSearches.includes(query.trim())) {
-      setRecentSearches(prev => [query.trim(), ...prev].slice(0, 5));
+  useEffect(() => {
+    if (query.trim().length > 1) {
+      const debounce = setTimeout(() => {
+        handleSearch();
+        fetchSuggestions();
+      }, 500);
+      return () => clearTimeout(debounce);
+    } else {
+      setResults({ products: [], categories: [], subcategories: [] });
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-  } catch (error) {
-    console.error('Search error:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  }, [query]);
 
-const fetchSuggestions = async () => {
-  try {
-    const response = await api.get('/search/suggestions', {
-      params: { query }
-    });
-    setSuggestions(response.data.data);
-    setShowSuggestions(response.data.data.length > 0);
-  } catch (error) {
-    console.error('Suggestions error:', error);
-  }
-};
+  const handleSearch = async () => {
+    try {
+      setIsLoading(true);
+      setShowSuggestions(false);
+      const response = await api.get('/search', {
+        params: { query }
+      });
+      setResults(response.data.data);
 
-const handleSuggestionPress = (suggestion) => {
-  setQuery(suggestion.text);
-  handleSearch();
-};
+      // Save to recent searches
+      if (query && query.trim() !== '' && !recentSearches.includes(query.trim())) {
+        setRecentSearches(prev => [query.trim(), ...prev].slice(0, 5));
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-// Handle category press - show subcategories or products
-const handleCategoryPress = async (category) => {
-  // Check if this category has subcategories
-  if (!category.parent || category.parent === null) {
-    // It's a parent category, navigate to SubcategoryList (fixed from CategoryList based on HomeScreen)
-    navigation.navigate('SubcategoryList', {
-      categoryId: category._id,
-      categoryName: category.name
-    });
-  } else {
-    // It's a subcategory, show its products directly
-    navigation.navigate('ProductList', {
-      subcategoryId: category._id,
-      subcategoryName: category.name
-    });
-  }
-};
+  const fetchSuggestions = async () => {
+    try {
+      const response = await api.get('/search/suggestions', {
+        params: { query }
+      });
+      setSuggestions(response.data.data);
+      setShowSuggestions(response.data.data.length > 0);
+    } catch (error) {
+      console.error('Suggestions error:', error);
+    }
+  };
 
-const handleProductPress = (productId) => {
-  navigation.navigate('ProductDetails', { productId });
-};
+  const handleSuggestionPress = (suggestion) => {
+    setQuery(suggestion.text);
+    handleSearch();
+  };
 
-const renderProduct = ({ item }) => (
-  <TouchableOpacity
-    style={styles.productCard}
-    onPress={() => handleProductPress(item._id)}
-    activeOpacity={0.7}
-  >
-    {item.images && item.images.length > 0 ? (
-      <Image
-        source={{ uri: getImageUrl(item.images[0]) }}
-        style={styles.productImage}
-      />
-    ) : (
-      <View style={styles.productImagePlaceholder}>
-        <Icon name="image-outline" size={24} color="#9CA3AF" />
-      </View>
-    )}
+  // Handle category press - show subcategories or products
+  const handleCategoryPress = async (category) => {
+    // Check if this category has subcategories
+    if (!category.parent || category.parent === null) {
+      // It's a parent category, navigate to SubcategoryList (fixed from CategoryList based on HomeScreen)
+      navigation.navigate('SubcategoryList', {
+        categoryId: category._id,
+        categoryName: category.name
+      });
+    } else {
+      // It's a subcategory, show its products directly
+      navigation.navigate('ProductList', {
+        subcategoryId: category._id,
+        subcategoryName: category.name
+      });
+    }
+  };
 
-    <View style={styles.productInfo}>
-      <Text style={styles.productTitle} numberOfLines={2}>
-        {item.title}
-      </Text>
-      <View style={styles.productPriceRow}>
-        <Text style={styles.productPrice}>₹{item.price}</Text>
-        {item.mrp > item.price && (
-          <Text style={styles.productMRP}>₹{item.mrp}</Text>
-        )}
-      </View>
-      {item.subcategory?.name && (
-        <Text style={styles.productCategory}>
-          in {item.subcategory.name}
-        </Text>
-      )}
-    </View>
+  const handleProductPress = (productId) => {
+    navigation.navigate('ProductDetails', { productId });
+  };
 
-    {item.discount > 0 && (
-      <View style={styles.discountBadge}>
-        <Text style={styles.discountBadgeText}>{item.discount}%</Text>
-      </View>
-    )}
-  </TouchableOpacity>
-);
-
-const renderCategory = ({ item }) => (
-  <TouchableOpacity
-    style={styles.categoryCard}
-    onPress={() => handleCategoryPress(item)}
-    activeOpacity={0.7}
-  >
-    {item.image ? (
-      <Image
-        source={{ uri: getImageUrl(item.image) }}
-        style={styles.categoryImage}
-      />
-    ) : (
-      <View style={styles.categoryImagePlaceholder}>
-        <Icon name="folder-outline" size={32} color="#9CA3AF" />
-      </View>
-    )}
-    <View style={styles.categoryCardInfo}>
-      <Text style={styles.categoryCardName}>{item.name}</Text>
-      {item.slug && <Text style={styles.categoryCardSlug}>{item.slug}</Text>}
-    </View>
-    <Icon name="chevron-forward" size={20} color="#4F46E5" />
-  </TouchableOpacity>
-);
-
-const renderSubcategory = ({ item }) => (
-  <TouchableOpacity
-    style={styles.subcategoryCard}
-    onPress={() => handleCategoryPress(item)}
-    activeOpacity={0.7}
-  >
-    {item.image ? (
-      <Image
-        source={{ uri: getImageUrl(item.image) }}
-        style={styles.subcategoryImage}
-      />
-    ) : (
-      <View style={styles.subcategoryImagePlaceholder}>
-        <Icon name="folder-outline" size={28} color="#9CA3AF" />
-      </View>
-    )}
-    <View style={styles.subcategoryCardInfo}>
-      <View style={styles.subcategoryBadge}>
-        <Text style={styles.subcategoryBadgeText}>Subcategory</Text>
-      </View>
-      <Text style={styles.subcategoryCardName}>{item.name}</Text>
-    </View>
-    <Icon name="chevron-forward" size={20} color="#4F46E5" />
-  </TouchableOpacity>
-);
-
-const hasResults =
-  results.products.length > 0 ||
-  results.categories.length > 0 ||
-  results.subcategories.length > 0;
-
-return (
-  <SafeAreaView style={styles.container}>
-    <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-    {/* Header */}
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon name="chevron-back" size={24} color="#111827" />
-      </TouchableOpacity>
-      <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color="#6B7280" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search products, categories..."
-          placeholderTextColor="#9CA3AF"
-          value={query}
-          onChangeText={(text) => {
-            setQuery(text);
-            if (text.length > 1) setShowSuggestions(true);
-          }}
-          autoFocus
-          returnKeyType="search"
-          onSubmitEditing={handleSearch}
+  const renderProduct = ({ item }) => (
+    <TouchableOpacity
+      style={styles.productCard}
+      onPress={() => handleProductPress(item._id)}
+      activeOpacity={0.7}
+    >
+      {item.images && item.images.length > 0 ? (
+        <Image
+          source={{ uri: getImageUrl(item.images[0]) }}
+          style={styles.productImage}
         />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => setQuery('')}>
-            <Icon name="close-circle" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+      ) : (
+        <View style={styles.productImagePlaceholder}>
+          <Icon name="image-outline" size={24} color="#9CA3AF" />
+        </View>
+      )}
 
-    {/* Suggestions Dropdown */}
-    {showSuggestions && suggestions.length > 0 && (
-      <View style={styles.suggestionsContainer}>
-        {suggestions.map((suggestion, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.suggestionItem}
-            onPress={() => handleSuggestionPress(suggestion)}
-          >
-            <Icon
-              name={suggestion.type === 'category' ? 'folder-outline' : 'search-outline'}
-              size={18}
-              color="#6B7280"
-            />
-            <Text style={styles.suggestionText}>{suggestion.text}</Text>
-            <Icon name="chevron-forward" size={16} color="#D1D5DB" />
-          </TouchableOpacity>
-        ))}
-      </View>
-    )}
-
-    {isLoading ? (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-      </View>
-    ) : query.trim().length === 0 ? (
-      // Empty state with recent searches
-      <View style={styles.emptyState}>
-        {recentSearches.length > 0 && (
-          <View style={styles.recentSection}>
-            <View style={styles.recentHeader}>
-              <Text style={styles.sectionTitle}>Recent Searches</Text>
-              <TouchableOpacity onPress={() => setRecentSearches([])}>
-                <Text style={styles.clearText}>Clear</Text>
-              </TouchableOpacity>
-            </View>
-            {recentSearches.map((search, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.recentItem}
-                onPress={() => setQuery(search)}
-              >
-                <Icon name="time-outline" size={18} color="#6B7280" />
-                <Text style={styles.recentText}>{search}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-        <View style={styles.emptyIconContainer}>
-          <Icon name="search-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyText}>Start typing to search</Text>
-          <Text style={styles.emptySubtext}>
-            Find products, categories & more
+      <View style={styles.productInfo}>
+        <Text style={styles.productTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        <View style={styles.productPriceRow}>
+          <Text style={styles.productPrice}>₹{item.price}</Text>
+          {item.mrp > item.price && (
+            <Text style={styles.productMRP}>₹{item.mrp}</Text>
+          )}
+        </View>
+        {item.subcategory?.name && (
+          <Text style={styles.productCategory}>
+            in {item.subcategory.name}
           </Text>
+        )}
+      </View>
+
+      {item.discount > 0 && (
+        <View style={styles.discountBadge}>
+          <Text style={styles.discountBadgeText}>{item.discount}%</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+
+  const renderCategory = ({ item }) => (
+    <TouchableOpacity
+      style={styles.categoryCard}
+      onPress={() => handleCategoryPress(item)}
+      activeOpacity={0.7}
+    >
+      {item.image ? (
+        <Image
+          source={{ uri: getImageUrl(item.image) }}
+          style={styles.categoryImage}
+        />
+      ) : (
+        <View style={styles.categoryImagePlaceholder}>
+          <Icon name="folder-outline" size={32} color="#9CA3AF" />
+        </View>
+      )}
+      <View style={styles.categoryCardInfo}>
+        <Text style={styles.categoryCardName}>{item.name}</Text>
+        {item.slug && <Text style={styles.categoryCardSlug}>{item.slug}</Text>}
+      </View>
+      <Icon name="chevron-forward" size={20} color="#4F46E5" />
+    </TouchableOpacity>
+  );
+
+  const renderSubcategory = ({ item }) => (
+    <TouchableOpacity
+      style={styles.subcategoryCard}
+      onPress={() => handleCategoryPress(item)}
+      activeOpacity={0.7}
+    >
+      {item.image ? (
+        <Image
+          source={{ uri: getImageUrl(item.image) }}
+          style={styles.subcategoryImage}
+        />
+      ) : (
+        <View style={styles.subcategoryImagePlaceholder}>
+          <Icon name="folder-outline" size={28} color="#9CA3AF" />
+        </View>
+      )}
+      <View style={styles.subcategoryCardInfo}>
+        <View style={styles.subcategoryBadge}>
+          <Text style={styles.subcategoryBadgeText}>Subcategory</Text>
+        </View>
+        <Text style={styles.subcategoryCardName}>{item.name}</Text>
+      </View>
+      <Icon name="chevron-forward" size={20} color="#4F46E5" />
+    </TouchableOpacity>
+  );
+
+  const hasResults =
+    results.products.length > 0 ||
+    results.categories.length > 0 ||
+    results.subcategories.length > 0;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="chevron-back" size={24} color="#111827" />
+        </TouchableOpacity>
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#6B7280" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search products, categories..."
+            placeholderTextColor="#9CA3AF"
+            value={query}
+            onChangeText={(text) => {
+              setQuery(text);
+              if (text.length > 1) setShowSuggestions(true);
+            }}
+            autoFocus
+            returnKeyType="search"
+            onSubmitEditing={handleSearch}
+          />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={() => setQuery('')}>
+              <Icon name="close-circle" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
-    ) : !hasResults && !showSuggestions ? (
-      // No results state
-      <View style={styles.emptyState}>
-        <Icon name="sad-outline" size={64} color="#D1D5DB" />
-        <Text style={styles.emptyText}>No results found</Text>
-        <Text style={styles.emptySubtext}>Try different keywords</Text>
-      </View>
-    ) : (
-      // Results using SectionList (Fixed)
-      <SectionList
-        sections={[
-          {
-            title: `Categories (${results.categories.length})`,
-            data: results.categories,
-            renderItem: renderCategory
-          },
-          {
-            title: `Subcategories (${results.subcategories.length})`,
-            data: results.subcategories,
-            renderItem: renderSubcategory
-          },
-          {
-            title: `Products (${results.products.length})`,
-            data: results.products,
-            renderItem: renderProduct
-          }
-        ].filter(section => section.data.length > 0)}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
-        keyExtractor={(item, index) => item._id || index.toString()}
-        contentContainerStyle={styles.resultsContainer}
-        stickySectionHeadersEnabled={false}
-        keyboardShouldPersistTaps="handled"
-      />
-    )}
-  </SafeAreaView>
-);
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <View style={styles.suggestionsContainer}>
+          {suggestions.map((suggestion, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.suggestionItem}
+              onPress={() => handleSuggestionPress(suggestion)}
+            >
+              <Icon
+                name={suggestion.type === 'category' ? 'folder-outline' : 'search-outline'}
+                size={18}
+                color="#6B7280"
+              />
+              <Text style={styles.suggestionText}>{suggestion.text}</Text>
+              <Icon name="chevron-forward" size={16} color="#D1D5DB" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4F46E5" />
+        </View>
+      ) : query.trim().length === 0 ? (
+        // Empty state with recent searches
+        <View style={styles.emptyState}>
+          {recentSearches.length > 0 && (
+            <View style={styles.recentSection}>
+              <View style={styles.recentHeader}>
+                <Text style={styles.sectionTitle}>Recent Searches</Text>
+                <TouchableOpacity onPress={() => setRecentSearches([])}>
+                  <Text style={styles.clearText}>Clear</Text>
+                </TouchableOpacity>
+              </View>
+              {recentSearches.map((search, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.recentItem}
+                  onPress={() => setQuery(search)}
+                >
+                  <Icon name="time-outline" size={18} color="#6B7280" />
+                  <Text style={styles.recentText}>{search}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          <View style={styles.emptyIconContainer}>
+            <Icon name="search-outline" size={64} color="#D1D5DB" />
+            <Text style={styles.emptyText}>Start typing to search</Text>
+            <Text style={styles.emptySubtext}>
+              Find products, categories & more
+            </Text>
+          </View>
+        </View>
+      ) : !hasResults && !showSuggestions ? (
+        // No results state
+        <View style={styles.emptyState}>
+          <Icon name="sad-outline" size={64} color="#D1D5DB" />
+          <Text style={styles.emptyText}>No results found</Text>
+          <Text style={styles.emptySubtext}>Try different keywords</Text>
+        </View>
+      ) : (
+        // Results using SectionList (Fixed)
+        <SectionList
+          sections={[
+            {
+              title: `Categories (${results.categories.length})`,
+              data: results.categories,
+              renderItem: renderCategory
+            },
+            {
+              title: `Subcategories (${results.subcategories.length})`,
+              data: results.subcategories,
+              renderItem: renderSubcategory
+            },
+            {
+              title: `Products (${results.products.length})`,
+              data: results.products,
+              renderItem: renderProduct
+            }
+          ].filter(section => section.data.length > 0)}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.sectionHeader}>{title}</Text>
+          )}
+          keyExtractor={(item, index) => item._id || index.toString()}
+          contentContainerStyle={styles.resultsContainer}
+          stickySectionHeadersEnabled={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      )}
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({

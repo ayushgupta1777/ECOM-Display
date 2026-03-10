@@ -20,6 +20,7 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [settingDefaultId, setSettingDefaultId] = useState(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -82,28 +83,31 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
     try {
       setIsLoading(true);
       const response = await api.get('/shiprocket/pickup-locations');
+      const locations = response.data.data.locations;
       Alert.alert(
-        'Success',
-        `Fetched ${response.data.data.locations.length} pickup locations`
+        'Sync Complete',
+        `Successfully synced ${locations.length} pickup location(s) from Shiprocket.\n\nThe first location has been set as default automatically.`
       );
-      fetchSettings(); // Refresh to show updated locations
+      fetchSettings(); // Refresh to show updated locations with correct default
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch pickup locations');
+      Alert.alert('Error', 'Failed to fetch pickup locations. Please check your Shiprocket credentials.');
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const setDefaultLocation = async (locationId) => {
+  const setDefaultLocation = async (locationId, locationName) => {
     try {
-      setIsLoading(true);
-      await api.patch(`/shiprocket/pickup-locations/${locationId}/default`);
-      Alert.alert('Success', 'Default pickup location updated');
-      fetchSettings();
+      setSettingDefaultId(locationId);
+      await api.put(`/shiprocket/pickup-locations/${locationId}/set-default`);
+      Alert.alert('Default Updated', `"${locationName}" is now your default pickup location.`);
+      fetchSettings(); // Refresh to reflect the change
     } catch (error) {
-      Alert.alert('Error', 'Failed to update default location');
+      Alert.alert('Error', 'Failed to set default location. Please try again.');
+      console.error(error);
     } finally {
-      setIsLoading(false);
+      setSettingDefaultId(null);
     }
   };
 
@@ -163,6 +167,47 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* === CRITICAL: Default Pickup Name === */}
+        <View style={styles.section}>
+          <View style={styles.pickupNameBanner}>
+            <Icon name="warning" size={20} color="#92400E" />
+            <Text style={styles.pickupNameBannerText}>
+              Required for order processing
+            </Text>
+          </View>
+          <Text style={styles.sectionTitle}>Default Pickup Name</Text>
+          <Text style={styles.sectionSubtitle}>
+            Enter the exact warehouse/pickup name from your Shiprocket dashboard
+            (Settings → Manage Pickup Addresses → Name column).
+            This is used for every shipment.
+          </Text>
+          <View style={styles.formGroup}>
+            <TextInput
+              style={[styles.input, styles.pickupNameInput]}
+              placeholder="e.g.  Primary  or  Home  or  Warehouse 1"
+              placeholderTextColor="#9CA3AF"
+              value={formData.defaultPickupName}
+              onChangeText={(text) => setFormData({ ...formData, defaultPickupName: text })}
+              autoCapitalize="words"
+            />
+          </View>
+          {formData.defaultPickupName ? (
+            <View style={styles.pickupNameOk}>
+              <Icon name="checkmark-circle" size={16} color="#10B981" />
+              <Text style={styles.pickupNameOkText}>
+                Orders will use: "{formData.defaultPickupName}"
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.pickupNameWarn}>
+              <Icon name="alert-circle" size={16} color="#DC2626" />
+              <Text style={styles.pickupNameWarnText}>
+                ⚠️  No pickup name set — shipment creation will fail!
+              </Text>
+            </View>
+          )}
+        </View>
+
         {/* Credentials Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>API Credentials</Text>
@@ -206,19 +251,6 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
             />
           </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Default Pickup Name (Manual Override)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. PRIMARY WAREHOUSE"
-              value={formData.defaultPickupName}
-              onChangeText={(text) => setFormData({ ...formData, defaultPickupName: text })}
-            />
-            <Text style={styles.helperText}>
-              IMPORTANT: This must slowly match the 'Pickup Location' name in your Shiprocket dashboard. Use this if the automated 'Fetch' below is not working for you.
-            </Text>
-          </View>
-
           <TouchableOpacity
             style={styles.testBtn}
             onPress={testConnection}
@@ -250,12 +282,15 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
 
           {settings?.pickupLocations?.length > 0 ? (
             settings.pickupLocations.map((location, index) => (
-              <View key={index} style={styles.locationCard}>
+              <View key={index} style={[
+                styles.locationCard,
+                location.isDefault && styles.locationCardDefault
+              ]}>
                 <View style={styles.locationHeader}>
                   <Text style={styles.locationName}>{location.name}</Text>
                   {location.isDefault && (
                     <View style={styles.defaultBadge}>
-                      <Text style={styles.defaultText}>Default</Text>
+                      <Text style={styles.defaultText}>✓ Default</Text>
                     </View>
                   )}
                 </View>
@@ -265,13 +300,17 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
                 <Text style={styles.locationPhone}>
                   📞 {location.phone}
                 </Text>
-
                 {!location.isDefault && (
                   <TouchableOpacity
-                    style={styles.setDefaultMiniBtn}
-                    onPress={() => setDefaultLocation(location.id)}
+                    style={styles.setDefaultBtn}
+                    onPress={() => setDefaultLocation(location.id, location.name)}
+                    disabled={settingDefaultId === location.id}
                   >
-                    <Text style={styles.setDefaultMiniBtnText}>Set as Default</Text>
+                    {settingDefaultId === location.id ? (
+                      <ActivityIndicator size="small" color="#4F46E5" />
+                    ) : (
+                      <Text style={styles.setDefaultBtnText}>Set as Default</Text>
+                    )}
                   </TouchableOpacity>
                 )}
               </View>
@@ -511,6 +550,49 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     marginTop: 4
   },
+  pickupNameBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginBottom: 12,
+    alignSelf: 'flex-start'
+  },
+  pickupNameBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400E'
+  },
+  pickupNameInput: {
+    borderColor: '#F59E0B',
+    borderWidth: 2,
+    backgroundColor: '#FFFBEB'
+  },
+  pickupNameOk: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4
+  },
+  pickupNameOkText: {
+    fontSize: 13,
+    color: '#10B981',
+    fontWeight: '600'
+  },
+  pickupNameWarn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4
+  },
+  pickupNameWarnText: {
+    fontSize: 13,
+    color: '#DC2626',
+    fontWeight: '600'
+  },
   testBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -545,7 +627,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     padding: 14,
     borderRadius: 8,
-    marginBottom: 8
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  locationCardDefault: {
+    borderColor: '#10B981',
+    backgroundColor: '#F0FDF4'
+  },
+  setDefaultBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: '#4F46E5'
+  },
+  setDefaultBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4F46E5'
   },
   locationHeader: {
     flexDirection: 'row',
@@ -645,19 +747,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#fff'
-  },
-  setDefaultMiniBtn: {
-    marginTop: 10,
-    backgroundColor: '#EEF2FF',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    alignSelf: 'flex-start'
-  },
-  setDefaultMiniBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5'
   }
 });
 
