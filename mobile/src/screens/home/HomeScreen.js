@@ -20,6 +20,7 @@ const HomeScreen = ({ navigation }) => {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [banners, setBanners] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -38,6 +39,7 @@ const HomeScreen = ({ navigation }) => {
     dispatch(fetchProducts());
     fetchBanners();
     fetchCategories();
+    fetchFeaturedProducts();
     fetchNotificationCount();
     // Start animations
     Animated.parallel([
@@ -60,6 +62,7 @@ const HomeScreen = ({ navigation }) => {
     dispatch(fetchProducts());
     fetchBanners();
     fetchCategories();
+    fetchFeaturedProducts();
     fetchNotificationCount();
   }, []);
 
@@ -80,6 +83,16 @@ const HomeScreen = ({ navigation }) => {
       console.error('Failed to fetch categories:', error);
     }
   };
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await api.get('/products/featured');
+      setFeaturedProducts(response.data.data.products);
+    } catch (error) {
+      console.error('Failed to fetch featured products:', error);
+    }
+  };
+
   const fetchNotificationCount = async () => {
     try {
       const response = await api.get('/notifications');
@@ -397,43 +410,49 @@ const HomeScreen = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.productsScroll}
             >
-              {products.slice(0, 10).map((product) => (
-                <TouchableOpacity
-                  key={product._id}
-                  style={styles.productCard}
-                  onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
-                >
-                  <Image
-                    source={{ uri: getImageUrl(product.images[0]) }}
-                    style={styles.productImage}
-                  />
+              {featuredProducts.length > 0 ? (
+                featuredProducts.map((product) => (
+                  <TouchableOpacity
+                    key={product._id}
+                    style={styles.productCard}
+                    onPress={() => navigation.navigate('ProductDetails', { productId: product._id })}
+                  >
+                    <Image
+                      source={{ uri: getImageUrl(product.images[0]) }}
+                      style={styles.productImage}
+                    />
 
-                  {product.discount > 0 && (
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountText}>{product.discount}% OFF</Text>
-                    </View>
-                  )}
-
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productTitle} numberOfLines={2}>
-                      {product.title}
-                    </Text>
-                    <View style={styles.productPriceRow}>
-                      <Text style={styles.productPrice}>₹{product.price}</Text>
-                      {product.mrp > product.price && (
-                        <Text style={styles.productMRP}>₹{product.mrp}</Text>
-                      )}
-                    </View>
-
-                    {product.averageRating > 0 && (
-                      <View style={styles.ratingRow}>
-                        <Icon name="star" size={12} color="#FFB800" />
-                        <Text style={styles.ratingText}>{product.averageRating.toFixed(1)}</Text>
+                    {product.discount > 0 && (
+                      <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>{product.discount}% OFF</Text>
                       </View>
                     )}
-                  </View>
-                </TouchableOpacity>
-              ))}
+
+                    <View style={styles.productInfo}>
+                      <Text style={styles.productTitle} numberOfLines={2}>
+                        {product.title}
+                      </Text>
+                      <View style={styles.productPriceRow}>
+                        <Text style={styles.productPrice}>₹{product.price}</Text>
+                        {product.mrp > product.price && (
+                          <Text style={styles.productMRP}>₹{product.mrp}</Text>
+                        )}
+                      </View>
+
+                      {product.averageRating > 0 && (
+                        <View style={styles.ratingRow}>
+                          <Icon name="star" size={12} color="#FFB800" />
+                          <Text style={styles.ratingText}>{product.averageRating.toFixed(1)}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#9CA3AF' }}>No featured products right now.</Text>
+                </View>
+              )}
             </ScrollView>
           </View>
 

@@ -135,6 +135,13 @@ const ProfileScreen = ({ navigation }) => {
           description: 'Saved cards & UPI'
         },
         {
+          icon: 'lock-closed-outline',
+          title: 'Change Password',
+          screen: 'ChangePassword',
+          color: '#FF3B30',
+          description: 'Update your security'
+        },
+        {
           icon: 'notifications-outline',
           title: 'Notifications',
           screen: 'Notifications',

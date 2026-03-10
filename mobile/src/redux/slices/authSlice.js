@@ -57,6 +57,20 @@ export const loadUser = createAsyncThunk('auth/loadUser', async () => {
   throw new Error('No user found');
 });
 
+export const fetchProfile = createAsyncThunk(
+  'auth/fetchProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/users/profile');
+      const { user } = response.data.data;
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      return user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -129,11 +143,15 @@ const authSlice = createSlice({
         state.token = null;
         state.user = null;
         state.isAuthenticated = false;
+      })
+      // Fetch Profile
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.user = action.payload;
       });
   }
 });
 
 
 
-export const { clearError } = authSlice.actions;
+export const { clearError, updateUser, updateToken } = authSlice.actions;
 export default authSlice.reducer;

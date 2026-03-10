@@ -21,6 +21,7 @@ const AdminProductManagementScreen = ({ navigation }) => {
   const [subcategories, setSubcategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   // Fetch Categories on Mount
   useEffect(() => {
@@ -170,6 +171,108 @@ const AdminProductManagementScreen = ({ navigation }) => {
     return colors[status] || '#6B7280';
   };
 
+  const getActiveFilterLabel = () => {
+    if (selectedCategory === 'all') return 'All Categories';
+    
+    const cat = categories.find(c => c._id === selectedCategory);
+    if (!cat) return 'All Categories';
+
+    if (selectedSubcategory === 'all') {
+      return cat.name;
+    }
+
+    const sub = subcategories.find(s => s._id === selectedSubcategory);
+    return sub ? `${cat.name} > ${sub.name}` : cat.name;
+  };
+
+  const FilterModal = () => (
+    <Modal
+      visible={showFilterModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowFilterModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+         <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter by Category</Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <Icon name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ padding: 16 }}>
+              <TouchableOpacity
+                style={[
+                  styles.filterListItem,
+                  selectedCategory === 'all' && styles.filterListItemActive
+                ]}
+                onPress={() => {
+                  setSelectedCategory('all');
+                  setSelectedSubcategory('all');
+                  setSubcategories([]);
+                  setShowFilterModal(false);
+                }}
+              >
+                <Text style={[
+                  styles.filterListText,
+                  selectedCategory === 'all' && styles.filterListTextActive
+                ]}>All Categories</Text>
+                {selectedCategory === 'all' && <Icon name="checkmark" size={20} color="#4F46E5" />}
+              </TouchableOpacity>
+
+              {categories.map((cat) => (
+                <View key={cat._id}>
+                  <TouchableOpacity
+                    style={[
+                      styles.filterListItem,
+                      selectedCategory === cat._id && selectedSubcategory === 'all' && styles.filterListItemActive
+                    ]}
+                    onPress={() => {
+                      setSelectedCategory(cat._id);
+                      setSelectedSubcategory('all');
+                      fetchSubcategories(cat._id);
+                      setShowFilterModal(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.filterListText,
+                      selectedCategory === cat._id && selectedSubcategory === 'all' && styles.filterListTextActive
+                    ]}>{cat.name}</Text>
+                    {selectedCategory === cat._id && selectedSubcategory === 'all' && <Icon name="checkmark" size={20} color="#4F46E5" />}
+                  </TouchableOpacity>
+
+                  {/* Show Subcategories if this category is selected */}
+                  {selectedCategory === cat._id && subcategories.map((sub) => (
+                    <TouchableOpacity
+                      key={sub._id}
+                      style={[
+                        styles.filterListSubItem,
+                        selectedSubcategory === sub._id && styles.filterListItemActive
+                      ]}
+                      onPress={() => {
+                        setSelectedSubcategory(sub._id);
+                        setShowFilterModal(false);
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Icon name="return-down-forward-outline" size={16} color="#9CA3AF" style={{ marginRight: 8 }} />
+                        <Text style={[
+                          styles.filterListText,
+                          selectedSubcategory === sub._id && styles.filterListTextActive
+                        ]}>{sub.name}</Text>
+                      </View>
+                      {selectedSubcategory === sub._id && <Icon name="checkmark" size={20} color="#4F46E5" />}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+         </View>
+      </View>
+    </Modal>
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -233,93 +336,21 @@ const AdminProductManagementScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Category Filters */}
-      <View style={{ height: 50, marginBottom: 8 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={{ alignItems: 'center', paddingRight: 16 }}
+      {/* Category Filter Button */}
+      <View style={styles.filterBarContainer}>
+        <TouchableOpacity 
+          style={styles.filterMainButton}
+          onPress={() => setShowFilterModal(true)}
         >
-          <TouchableOpacity
-            style={[
-              styles.categoryChip,
-              selectedCategory === 'all' && styles.categoryChipActive
-            ]}
-            onPress={() => {
-              setSelectedCategory('all');
-              setSelectedSubcategory('all');
-              setSubcategories([]);
-            }}
-          >
-            <Text style={[
-              styles.categoryChipText,
-              selectedCategory === 'all' && styles.categoryChipTextActive
-            ]}>All Categories</Text>
-          </TouchableOpacity>
-
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat._id}
-              style={[
-                styles.categoryChip,
-                selectedCategory === cat._id && styles.categoryChipActive
-              ]}
-              onPress={() => {
-                setSelectedCategory(cat._id);
-                setSelectedSubcategory('all');
-                fetchSubcategories(cat._id);
-              }}
-            >
-              <Text style={[
-                styles.categoryChipText,
-                selectedCategory === cat._id && styles.categoryChipTextActive
-              ]}>{cat.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          <Icon name="filter-outline" size={20} color="#4F46E5" />
+          <Text style={styles.filterMainButtonText} numberOfLines={1}>
+            {getActiveFilterLabel()}
+          </Text>
+          <Icon name="chevron-down" size={20} color="#6B7280" />
+        </TouchableOpacity>
       </View>
 
-      {/* Subcategory Filters */}
-      {subcategories.length > 0 && (
-        <View style={{ height: 50, marginBottom: 12 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.filtersContainer}
-            contentContainerStyle={{ alignItems: 'center', paddingRight: 16 }}
-          >
-            <TouchableOpacity
-              style={[
-                styles.subcategoryChip,
-                selectedSubcategory === 'all' && styles.subcategoryChipActive
-              ]}
-              onPress={() => setSelectedSubcategory('all')}
-            >
-              <Text style={[
-                styles.subcategoryChipText,
-                selectedSubcategory === 'all' && styles.subcategoryChipTextActive
-              ]}>All Subcategories</Text>
-            </TouchableOpacity>
-
-            {subcategories.map((subcat) => (
-              <TouchableOpacity
-                key={subcat._id}
-                style={[
-                  styles.subcategoryChip,
-                  selectedSubcategory === subcat._id && styles.subcategoryChipActive
-                ]}
-                onPress={() => setSelectedSubcategory(subcat._id)}
-              >
-                <Text style={[
-                  styles.subcategoryChipText,
-                  selectedSubcategory === subcat._id && styles.subcategoryChipTextActive
-                ]}>{subcat.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      <FilterModal />
 
       {/* Products List */}
       <FlatList
@@ -510,47 +541,26 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: '#fff'
   },
-  categoryChip: {
-    paddingVertical: 6,
+  filterBarContainer: {
     paddingHorizontal: 16,
-    borderRadius: 8,
-    marginRight: 10,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  filterMainButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    height: 34,
-  },
-  categoryChipActive: {
-    backgroundColor: '#F59E0B',
-  },
-  categoryChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4B5563'
-  },
-  categoryChipTextActive: {
-    color: '#fff'
-  },
-  subcategoryChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     borderRadius: 8,
-    marginRight: 8,
-    backgroundColor: '#E5E7EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 32,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  subcategoryChipActive: {
-    backgroundColor: '#10B981',
-  },
-  subcategoryChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151'
-  },
-  subcategoryChipTextActive: {
-    color: '#fff'
+  filterMainButtonText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#111827',
+    marginLeft: 8,
   },
   productCard: {
     flexDirection: 'row',
@@ -684,6 +694,59 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  filterListItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  filterListSubItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingLeft: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    backgroundColor: '#F9FAFB',
+  },
+  filterListItemActive: {
+    backgroundColor: '#EEF2FF',
+  },
+  filterListText: {
+    fontSize: 15,
+    color: '#374151',
+  },
+  filterListTextActive: {
+    color: '#4F46E5',
+    fontWeight: '600',
   }
 });
 

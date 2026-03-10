@@ -29,6 +29,7 @@ const AddProductScreen = ({ navigation, route }) => {
     mrp: '',
     stock: '',
     sku: '',
+    isFeatured: false,
     images: []
   });
 
@@ -44,6 +45,7 @@ const AddProductScreen = ({ navigation, route }) => {
         mrp: String(product.mrp || ''),
         stock: String(product.stock || ''),
         sku: product.sku || '',
+        isFeatured: product.isFeatured || false,
         images: product.images || []
       });
       // If category exists, fetch subcategories
@@ -98,6 +100,7 @@ const AddProductScreen = ({ navigation, route }) => {
       mrp: '',
       stock: '',
       sku: '',
+      isFeatured: false,
       images: []
     });
     setSubcategories([]);
@@ -233,7 +236,8 @@ const AddProductScreen = ({ navigation, route }) => {
         sku: formData.sku.trim() || undefined,
         discount: calculateDiscount(),
         category: formData.category,
-        subcategory: formData.subcategory || null
+        subcategory: formData.subcategory || null,
+        isFeatured: formData.isFeatured
       };
 
       if (isEditMode) {
@@ -577,6 +581,20 @@ const AddProductScreen = ({ navigation, route }) => {
               placeholderTextColor="#9CA3AF"
               autoCapitalize="characters"
             />
+          </View>
+
+          <View style={[styles.formGroup, styles.switchContainer]}>
+            <View>
+              <Text style={styles.label}>Mark as Featured Product</Text>
+              <Text style={styles.helperText}>Maximum 5 products can be featured on home screen.</Text>
+            </View>
+            <TouchableOpacity 
+              style={[styles.switchTrack, formData.isFeatured && styles.switchTrackActive]}
+              onPress={() => setFormData({ ...formData, isFeatured: !formData.isFeatured })}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.switchThumb, formData.isFeatured && styles.switchThumbActive]} />
+            </TouchableOpacity>
           </View>
         </View>
 

@@ -66,6 +66,9 @@ import AddressesScreen from '../screens/profile/AddressesScreen';
 // import EditAddressScreen from '../screens/profile/EditAddressScreen';
 import InitiateReturnScreen from '../screens/returns/InitiateReturnScreen';
 import MyReturnsScreen from '../screens/returns/MyReturnsScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
+import PaymentMethodsScreen from '../screens/payment/PaymentMethodsScreen';
 
 // Policy & Legal Pages
 import TermsScreen from '../screens/profile/Policies/TermsScreen';
@@ -220,6 +223,10 @@ const ProfileStack = () => (
     {/* <Stack.Screen name="EditAddress" component={EditAddressScreen} />*/}
     <Stack.Screen name="InitiateReturn" component={InitiateReturnScreen} />
     <Stack.Screen name="MyReturns" component={MyReturnsScreen} />
+
+    <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+    <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+    <Stack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
 
     {/* Legal & Policy Pages */}
     <Stack.Screen
