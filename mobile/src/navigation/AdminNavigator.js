@@ -45,6 +45,14 @@ const ProductsStack = () => (
   </Stack.Navigator>
 );
 
+// Support Stack
+const SupportStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="AdminChatList" component={AdminChatListScreen} />
+    <Stack.Screen name="AdminChat" component={AdminChatScreen} />
+  </Stack.Navigator>
+);
+
 // Settings Stack
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -74,6 +82,8 @@ const AdminNavigator = () => {
             iconName = focused ? 'receipt' : 'receipt-outline';
           } else if (route.name === 'Products') {
             iconName = focused ? 'cube' : 'cube-outline';
+          } else if (route.name === 'Support') {
+            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
           }
@@ -91,8 +101,8 @@ const AdminNavigator = () => {
       })}
     >
       <Tab.Screen name="Orders" component={OrdersStack} />
+      <Tab.Screen name="Support" component={SupportStack} options={{ tabBarLabel: 'Support' }} />
       <Tab.Screen name="Products" component={ProductsStack} />
-      <Tab.Screen name="Support" component={AdminChatListScreen} options={{ tabBarLabel: 'Support' }} />
       <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );

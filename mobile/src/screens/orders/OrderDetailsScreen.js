@@ -930,7 +930,9 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
       <CustomHeader title="Order Details" showBack={true} />
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} bounces={true}>
+        {/* Background fill for pull-down bounce - matching the first section (white) */}
+        <View style={{ backgroundColor: '#fff', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
         {/* Order Header */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
@@ -1164,14 +1166,14 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
           )}
 
           <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => navigation.navigate('CreateSupportTicket', {
+            style={[styles.actionBtn, { borderColor: '#4F46E5', backgroundColor: '#EEF2FF' }]}
+            onPress={() => navigation.navigate('UserChat', {
               orderId: order._id,
               orderNo: order.orderNo
             })}
           >
-            <Icon name="help-circle-outline" size={20} color="#4F46E5" />
-            <Text style={styles.actionBtnText}>Contact Support</Text>
+            <Icon name="chatbubble-ellipses-outline" size={20} color="#4F46E5" />
+            <Text style={[styles.actionBtnText, { color: '#4F46E5' }]}>Raise Issue / Get Help</Text>
           </TouchableOpacity>
         </View>
 

@@ -220,7 +220,11 @@ const ProfileScreen = ({ navigation }) => {
     <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}
+      bounces={true}
     >
+      {/* Background fill for pull-down bounce */}
+      <View style={{ backgroundColor: '#4F46E5', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
+
       {/* Header Section */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>

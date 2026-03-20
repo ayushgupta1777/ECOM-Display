@@ -19,12 +19,13 @@ import { useSelector } from 'react-redux';
 import { BASE_URL } from '../../services/api'; 
 import LinearGradient from 'react-native-linear-gradient';
 
-const UserChatScreen = ({ navigation }) => {
+const UserChatScreen = ({ navigation, route }) => {
   const { user, token } = useSelector((state) => state.auth);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState(null);
+  const { orderId, orderNo } = route.params || {};
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
 
@@ -38,8 +39,9 @@ const UserChatScreen = ({ navigation }) => {
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket server');
-      if (user) {
-        socketRef.current.emit('join', user._id);
+      const userId = user?.id || user?._id;
+      if (userId) {
+        socketRef.current.emit('join', userId);
       }
     });
 
@@ -60,7 +62,7 @@ const UserChatScreen = ({ navigation }) => {
         socketRef.current.disconnect();
       }
     };
-  }, []);
+  }, [orderId, user?.id, user?._id]);
 
   const fetchChatAndMessages = async () => {
     try {
@@ -68,6 +70,10 @@ const UserChatScreen = ({ navigation }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const currentChat = chatRes.data.chat;
+      if (!currentChat) {
+        setLoading(false);
+        return;
+      }
       setChat(currentChat);
 
       const msgRes = await axios.get(`${BASE_URL}/api/chat/${currentChat._id}/messages`, {
@@ -78,6 +84,22 @@ const UserChatScreen = ({ navigation }) => {
       
       // Mark as read
       socketRef.current?.emit('mark_read', { chatId: currentChat._id, role: 'user' });
+
+      // If coming from "Raise Issue", send automated message if not already sent
+      if (orderId && orderNo) {
+        const automatedText = `I need help with Order #${orderNo}`;
+        // Check if this message was already sent recently to avoid duplicates on refresh
+        const exists = msgRes.data.messages.some(m => m.text === automatedText && m.orderId === orderId);
+        if (!exists) {
+          socketRef.current?.emit('send_message', {
+            chatId: currentChat._id,
+            senderId: user?.id || user?._id,
+            senderRole: 'user',
+            text: automatedText,
+            orderId: orderId
+          });
+        }
+      }
     } catch (error) {
       console.error('Fetch chat error:', error);
       setLoading(false);
@@ -89,13 +111,26 @@ const UserChatScreen = ({ navigation }) => {
 
     const messageData = {
       chatId: chat._id,
-      senderId: user._id,
+      senderId: user?.id || user?._id,
       senderRole: 'user',
       text: inputText.trim(),
     };
 
     socketRef.current.emit('send_message', messageData);
     setInputText('');
+  };
+
+  const renderOrderReference = (itemOrderId) => {
+    if (!itemOrderId) return null;
+    return (
+      <TouchableOpacity 
+        style={styles.orderRefBadge}
+        onPress={() => navigation.navigate('OrderDetails', { orderId: itemOrderId })}
+      >
+        <Icon name="receipt-outline" size={12} color="#4F46E5" />
+        <Text style={styles.orderRefText}>View Order</Text>
+      </TouchableOpacity>
+    );
   };
 
   const renderMessage = ({ item }) => {
@@ -111,6 +146,7 @@ const UserChatScreen = ({ navigation }) => {
           <Text style={[styles.messageText, isMine ? styles.myMessageText : styles.otherMessageText]}>
             {item.text}
           </Text>
+          {renderOrderReference(item.orderId)}
           <View style={styles.messageFooter}>
             <Text style={styles.timeText}>
               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -139,7 +175,7 @@ const UserChatScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#4F46E5', '#6366F1']} style={styles.header}>
+      <View style={[styles.header, { backgroundColor: '#4F46E5' }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="chevron-back" size={28} color="#FFF" />
         </TouchableOpacity>
@@ -150,7 +186,7 @@ const UserChatScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.headerIcon}>
           <Icon name="information-circle-outline" size={24} color="#FFF" />
         </TouchableOpacity>
-      </LinearGradient>
+      </View>
 
       <FlatList
         ref={flatListRef}
@@ -278,6 +314,23 @@ const styles = StyleSheet.create({
   },
   otherMessageText: {
     color: '#1E293B',
+  },
+  orderRefBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  orderRefText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#4F46E5',
+    textTransform: 'uppercase',
   },
   messageFooter: {
     flexDirection: 'row',

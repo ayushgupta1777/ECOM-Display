@@ -252,6 +252,9 @@ const ProductListScreen = ({ route, navigation }) => {
           numColumns={2}
           contentContainerStyle={styles.gridContainer}
           columnWrapperStyle={styles.gridWrapper}
+          ListHeaderComponent={
+            <View style={{ backgroundColor: '#fff', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
+          }
           refreshControl={
             <RefreshControl
               refreshing={isLoading}

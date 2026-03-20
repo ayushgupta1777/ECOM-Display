@@ -81,13 +81,26 @@ const AdminChatScreen = ({ route, navigation }) => {
 
     const messageData = {
       chatId,
-      senderId: user._id,
+      senderId: user?.id || user?._id,
       senderRole: 'admin',
       text: inputText.trim(),
     };
 
     socketRef.current.emit('send_message', messageData);
     setInputText('');
+  };
+
+  const renderOrderReference = (itemOrderId) => {
+    if (!itemOrderId) return null;
+    return (
+      <TouchableOpacity 
+        style={styles.orderRefBadge}
+        onPress={() => navigation.navigate('AdminOrderDetails', { orderId: itemOrderId })}
+      >
+        <Icon name="receipt-outline" size={12} color="#10B981" />
+        <Text style={styles.orderRefText}>View Order</Text>
+      </TouchableOpacity>
+    );
   };
 
   const renderMessage = ({ item }) => {
@@ -98,6 +111,7 @@ const AdminChatScreen = ({ route, navigation }) => {
           <Text style={[styles.messageText, isMine ? styles.myMessageText : styles.otherMessageText]}>
             {item.text}
           </Text>
+          {renderOrderReference(item.orderId)}
           <View style={styles.messageFooter}>
             <Text style={[styles.timeText, isMine && styles.myTimeText]}>
                {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -126,7 +140,7 @@ const AdminChatScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#1E293B', '#334155']} style={styles.header}>
+      <View style={[styles.header, { backgroundColor: '#1E293B' }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="chevron-back" size={28} color="#FFF" />
         </TouchableOpacity>
@@ -134,7 +148,7 @@ const AdminChatScreen = ({ route, navigation }) => {
           <Text style={styles.headerTitle}>{userName}</Text>
           <Text style={styles.headerStatus}>Customer</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <FlatList
         ref={flatListRef}
@@ -240,6 +254,23 @@ const styles = StyleSheet.create({
   },
   otherMessageText: {
     color: '#1E293B',
+  },
+  orderRefBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  orderRefText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#10B981',
+    textTransform: 'uppercase',
   },
   messageFooter: {
     flexDirection: 'row',

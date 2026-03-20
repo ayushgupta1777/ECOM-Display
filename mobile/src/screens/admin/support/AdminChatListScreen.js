@@ -41,7 +41,8 @@ const AdminChatListScreen = ({ navigation }) => {
             ...newChats[index], 
             lastMessage: updatedChat.lastMessage,
             updatedAt: updatedChat.updatedAt,
-            unreadCountAdmin: updatedChat.unreadCountAdmin
+            unreadCountAdmin: updatedChat.unreadCountAdmin,
+            lastOrderId: updatedChat.lastOrderId
           };
           // Move to top
           const moved = newChats.splice(index, 1)[0];
@@ -100,9 +101,17 @@ const AdminChatListScreen = ({ navigation }) => {
             {new Date(item.updatedAt).toLocaleDateString()}
           </Text>
         </View>
-        <Text style={[styles.lastMessage, item.unreadCountAdmin > 0 && styles.unreadText]} numberOfLines={1}>
-          {item.lastMessage || 'No messages yet'}
-        </Text>
+        <View style={styles.messageRow}>
+          <Text style={[styles.lastMessage, item.unreadCountAdmin > 0 && styles.unreadText]} numberOfLines={1}>
+            {item.lastMessage || 'No messages yet'}
+          </Text>
+          {item.lastOrderId && (
+            <View style={styles.orderBadgeMini}>
+              <Icon name="receipt" size={10} color="#10B981" />
+              <Text style={styles.orderBadgeText}>Order</Text>
+            </View>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -213,6 +222,27 @@ const styles = StyleSheet.create({
   unreadText: {
     color: '#1E293B',
     fontWeight: '600',
+  },
+  messageRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  orderBadgeMini: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+  orderBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#10B981',
+    textTransform: 'uppercase',
   },
   emptyContainer: {
     paddingTop: 100,

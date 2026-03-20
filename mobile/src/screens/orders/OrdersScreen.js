@@ -129,6 +129,9 @@ const OrdersScreen = ({ navigation }) => {
         renderItem={renderOrder}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles['orders-premium-list-content']}
+        ListHeaderComponent={
+          <View style={{ backgroundColor: '#F8F9FA', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
+        }
         refreshControl={
           <RefreshControl
             refreshing={isLoading}

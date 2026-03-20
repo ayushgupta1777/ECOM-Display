@@ -261,12 +261,12 @@ const OrdersDashboardScreen = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      {/* FAB */}
+      {/* Support FAB */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('ShiprocketSettings')}
+        onPress={() => navigation.navigate('Support')}
       >
-        <Icon name="settings" size={24} color="#fff" />
+        <Icon name="chatbubbles" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
   );

@@ -199,6 +199,9 @@ const CartScreen = ({ navigation }) => {
         renderItem={renderItem}
         keyExtractor={(i) => i._id}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={{ backgroundColor: '#F8F9FA', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
+        }
       />
 
       <View style={styles.footer}>

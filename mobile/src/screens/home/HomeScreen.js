@@ -353,7 +353,13 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </Animated.View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+        >
+          {/* Background fill for pull-down bounce - matching the top background */}
+          <View style={{ backgroundColor: '#fff', height: 1000, position: 'absolute', top: -1000, left: 0, right: 0 }} />
+          
           {/* BANNER SLIDER */}
           <View style={styles.bannerContainer}>
             <ScrollView

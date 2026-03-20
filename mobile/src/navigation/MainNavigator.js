@@ -5,7 +5,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
 import { TouchableOpacity, View } from 'react-native';
 import AdminStack from './AdminNavigator';
-import FloatingSupportButton from '../components/FloatingSupportButton';
 
 // Customer/Reseller Screens
 import HomeScreen from '../screens/home/HomeScreen';
@@ -99,6 +98,8 @@ const HomeStack = () => (
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
     <Stack.Screen name="UserChat" component={UserChatScreen} />
+    <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+    <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
   </Stack.Navigator>
 );
 
@@ -194,6 +195,7 @@ const OrdersStack = () => (
       name="CreateSupportTicket"
       component={CreateSupportTicketScreen}
     />
+    <Stack.Screen name="UserChat" component={UserChatScreen} />
 
     <Stack.Screen
       name="PaymentGateway"
@@ -308,26 +310,10 @@ const ProfileStack = () => (
         )
       })}
     />
-    <Stack.Screen
-      name="ContactUs"
-      component={ContactUsScreen}
-      options={({ navigation }) => ({
-        headerShown: true,
-        title: 'Contact Us',
-        headerStyle: { backgroundColor: '#4F46E5' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '600' },
-        headerLeft: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ProfileMain')}
-            style={{ marginLeft: 16 }}
-          >
-            <Icon name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-        )
-      })}
-    />
+    <Stack.Screen name="ContactUs" component={ContactUsScreen} />
     <Stack.Screen name="UserChat" component={UserChatScreen} />
+    <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+    <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
   </Stack.Navigator>
 );
 
@@ -428,7 +414,6 @@ const MainNavigator = () => {
         <Tab.Screen name="Orders" component={OrdersStack} />
         <Tab.Screen name="Profile" component={ProfileStack} />
       </Tab.Navigator>
-      <FloatingSupportButton />
     </Fragment>
   );
 };
