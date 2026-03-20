@@ -1224,7 +1224,7 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
             <Text>{order.shipping === 0 ? 'FREE' : `₹${order.shipping}`}</Text>
           </View>
           <View style={styles.priceRow}>
-            <Text>Tax (18%)</Text>
+            <Text>Tax (3%)</Text>
             <Text>₹{order.tax}</Text>
           </View>
           {order.coupon && order.coupon.code && (

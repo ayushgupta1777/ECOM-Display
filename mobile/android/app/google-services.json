@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "898387401992-qn1o7tnddndqflksclc6m3jl4486quhj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.newrajfancystore.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
           "client_id": "898387401992-uunor06r6iso7onah7gcvq7vue197mo5.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import AdminStack from './AdminNavigator';
+import FloatingSupportButton from '../components/FloatingSupportButton';
 
 // Customer/Reseller Screens
 import HomeScreen from '../screens/home/HomeScreen';
@@ -20,6 +21,7 @@ import PaymentScreen from '../screens/payment/PaymentScreen';
 import OrderSuccessScreen from '../screens/orders/OrderSuccessScreen';
 import PaymentGatewayScreen from '../screens/payment/PaymentGatewayScreen';
 import CreateSupportTicketScreen from '../screens/orders/CreateSupportTicketScreen';
+import UserChatScreen from '../screens/support/UserChatScreen';
 
 import CategoryListScreen from '../screens/product/CategoryListScreen';
 import SubcategoryListScreen from '../screens/product/SubcategoryListScreen';
@@ -96,6 +98,7 @@ const HomeStack = () => (
     <Stack.Screen name="Search" component={SearchScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="ShiprocketSettings" component={ShiprocketSettingsScreen} />
+    <Stack.Screen name="UserChat" component={UserChatScreen} />
   </Stack.Navigator>
 );
 
@@ -324,6 +327,7 @@ const ProfileStack = () => (
         )
       })}
     />
+    <Stack.Screen name="UserChat" component={UserChatScreen} />
   </Stack.Navigator>
 );
 
@@ -378,52 +382,56 @@ const MainNavigator = () => {
 
   // CUSTOMER/RESELLER INTERFACE
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'ResellerHub') {
-            iconName = focused ? 'cash' : 'cash-outline';
-          } else if (route.name === 'Cart') {
-            iconName = focused ? 'cart' : 'cart-outline';
-          } else if (route.name === 'Orders') {
-            iconName = focused ? 'list' : 'list-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#4F46E5',
-        tabBarInactiveTintColor: 'gray',
-        headerShown: false,
-        // Highlight Reseller Hub if user is a reseller
-        tabBarBadge: route.name === 'ResellerHub' && isReseller ? '•' : undefined,
-        tabBarBadgeStyle: { backgroundColor: '#10B981' }
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeStack}
-        options={{ title: 'Shop' }}
-      />
+    <Fragment>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'ResellerHub') {
+              iconName = focused ? 'cash' : 'cash-outline';
+            } else if (route.name === 'Cart') {
+              iconName = focused ? 'cart' : 'cart-outline';
+            } else if (route.name === 'Orders') {
+              iconName = focused ? 'list' : 'list-outline';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person-outline';
+            }
+            return <Icon name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#4F46E5',
+          tabBarInactiveTintColor: 'gray',
+          headerShown: false,
+          // Highlight Reseller Hub if user is a reseller
+          tabBarBadge: route.name === 'ResellerHub' && isReseller ? '•' : undefined,
+          tabBarBadgeStyle: { backgroundColor: '#10B981' }
+        })}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeStack}
+          options={{ title: 'Shop' }}
+        />
 
-      {/* RESELLER HUB - Always visible, most prominent */}
-      <Tab.Screen
-        name="ResellerHub"
-        component={ResellerStack}
-        options={{
-          title: 'Earn Money',
-          tabBarLabel: 'Earn'
-        }}
-      />
+        {/* RESELLER HUB - Always visible, most prominent */}
+        <Tab.Screen
+          name="ResellerHub"
+          component={ResellerStack}
+          options={{
+            title: 'Earn Money',
+            tabBarLabel: 'Earn'
+          }}
+        />
 
-      <Tab.Screen name="Cart" component={CartStack} />
-      <Tab.Screen name="Orders" component={OrdersStack} />
-      <Tab.Screen name="Profile" component={ProfileStack} />
-    </Tab.Navigator>
+        <Tab.Screen name="Cart" component={CartStack} />
+        <Tab.Screen name="Orders" component={OrdersStack} />
+        <Tab.Screen name="Profile" component={ProfileStack} />
+      </Tab.Navigator>
+      <FloatingSupportButton />
+    </Fragment>
   );
 };
+
 
 export default MainNavigator;

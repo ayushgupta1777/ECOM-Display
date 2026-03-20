@@ -68,7 +68,7 @@ const CheckoutScreen = ({ navigation }) => {
 
   // Calculate pricing
   const shippingCost = totalPrice > 500 ? 0 : 50;
-  const tax = Math.round(totalPrice * 0.18);
+  const tax = Math.round(totalPrice * 0.03);
   const finalTotal = totalPrice + shippingCost + tax;
 
   const paymentMethods = [
@@ -77,7 +77,7 @@ const CheckoutScreen = ({ navigation }) => {
   ];
 
   const validateCheckout = () => {
-    console.log('ðŸ” Validating checkout...');
+    console.log('ðŸ” Validating checkout...');
     console.log('   Items count:', items.length);
     console.log('   Selected address:', selectedAddress ? selectedAddress.name : 'null');
     
@@ -337,7 +337,7 @@ useEffect(() => {
             </View>
 
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Tax (GST 18%)</Text>
+              <Text style={styles.priceLabel}>Tax (GST 3%)</Text>
               <Text style={styles.priceValue}>â‚¹{tax}</Text>
             </View>
 

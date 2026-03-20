@@ -97,6 +97,12 @@ const AdminProfileScreen = ({ navigation }) => {
           screen: 'Announcements',
           color: '#F59E0B',
           badge: 'Coming Soon'
+        },
+        {
+          icon: 'chatbubbles-outline',
+          label: 'Customer Support',
+          screen: 'Support',
+          color: '#4F46E5'
         }
       ]
     }

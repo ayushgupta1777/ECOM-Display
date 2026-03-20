@@ -18,6 +18,9 @@ import AdminWithdrawalsScreen from '../screens/admin/AdminWithdrawalsScreen';
 import AdminResellerApplicationsScreen from '../screens/admin/AdminResellerApplicationsScreen';
 import CouponManagementScreen from '../screens/admin/CouponManagementScreen';
 import GeneralSettingsScreen from '../screens/admin/GeneralSettingsScreen';
+import AdminChatListScreen from '../screens/admin/support/AdminChatListScreen';
+import AdminChatScreen from '../screens/admin/support/AdminChatScreen';
+import CreateShipmentScreen from '../screens/admin/CreateShipmentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -27,6 +30,8 @@ const OrdersStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="OrdersDashboard" component={OrdersDashboardScreen} />
     <Stack.Screen name="AdminOrderDetails" component={AdminOrderDetailsScreen} />
+    <Stack.Screen name="AdminChat" component={AdminChatScreen} />
+    <Stack.Screen name="CreateShipment" component={CreateShipmentScreen} />
   </Stack.Navigator>
 );
 
@@ -53,6 +58,7 @@ const SettingsStack = () => (
     <Stack.Screen name="AdminResellerApplications" component={AdminResellerApplicationsScreen} />
     <Stack.Screen name="CouponManagement" component={CouponManagementScreen} />
     <Stack.Screen name="OrdersDashboard" component={OrdersDashboardScreen} />
+    <Stack.Screen name="AdminOrderDetails" component={AdminOrderDetailsScreen} />
     <Stack.Screen name="AddProduct" component={AddProductScreen} />
   </Stack.Navigator>
 );
@@ -86,6 +92,7 @@ const AdminNavigator = () => {
     >
       <Tab.Screen name="Orders" component={OrdersStack} />
       <Tab.Screen name="Products" component={ProductsStack} />
+      <Tab.Screen name="Support" component={AdminChatListScreen} options={{ tabBarLabel: 'Support' }} />
       <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );

@@ -147,6 +147,13 @@ const ProfileScreen = ({ navigation }) => {
           screen: 'Notifications',
           color: '#FF9500',
           description: 'Manage alerts'
+        },
+        {
+          icon: 'chatbubbles-outline',
+          title: 'Customer Support',
+          screen: 'UserChat',
+          color: '#4F46E5',
+          description: 'Chat with our support team'
         }
       ]
     },
@@ -307,7 +314,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={[styles.statIcon, { backgroundColor: '#FEE2E2' }]}>
             <Icon name="heart-outline" size={24} color="#FF3B30" />
           </View>
-          <Text style={styles.statLabel}>Wishlist</Text>
+          <Text style={styles.statLabel}>Liked</Text>
           {/* {statsLoading ? (
             <ActivityIndicator size="small" color="#FF3B30" />
           ) : (

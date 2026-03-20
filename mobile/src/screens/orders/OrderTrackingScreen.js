@@ -1,334 +1,284 @@
-// ============================================
-// MOBILE APP - ORDER TRACKING & RETURNS
-// ============================================
-
-// 1. ORDER TRACKING SCREEN
-// screens/orders/OrderTrackingScreen.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
   Linking,
-  Animated,
-  Dimensions
+  Dimensions,
+  RefreshControl,
+  StatusBar,
+  Platform
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import Animated, { 
+  FadeIn, 
+  FadeInDown, 
+  Layout, 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withRepeat, 
+  withTiming, 
+  interpolateColor
+} from 'react-native-reanimated';
 import api from '../../services/api';
 import CustomHeader from '../../components/CustomHeader';
 
 const { width } = Dimensions.get('window');
+
+// Skeleton Component
+const Skeleton = ({ style }) => {
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withRepeat(withTiming(0.7, { duration: 1000 }), -1, true);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={[style, animatedStyle, { backgroundColor: '#E2E8F0' }]} />;
+};
 
 const OrderTrackingScreen = ({ route, navigation }) => {
   const { orderId } = route.params;
   const [order, setOrder] = useState(null);
   const [tracking, setTracking] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchTracking();
-    // Auto-refresh every 2 minutes
-    const interval = setInterval(fetchTracking, 120000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [loading]);
-
-  const fetchTracking = async () => {
+  const fetchTracking = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const response = await api.get(`/orders/${orderId}/tracking`);
       setOrder(response.data.data.order);
       setTracking(response.data.data.shiprocketTracking);
-      setLoading(false);
     } catch (error) {
       console.error('Failed to fetch tracking:', error);
+    } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchTracking();
+    const interval = setInterval(() => fetchTracking(false), 60000); // Refresh every minute
+    return () => clearInterval(interval);
+  }, [fetchTracking]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchTracking(false);
+  };
+
+  const steps = [
+    { key: 'confirmed', label: 'Order Confirmed', icon: 'checkmark-circle' },
+    { key: 'packed', label: 'Packed', icon: 'cube' },
+    { key: 'shipped', label: 'Shipped', icon: 'airplane' },
+    { key: 'out_for_delivery', label: 'Out for Delivery', icon: 'bicycle' },
+    { key: 'delivered', label: 'Delivered', icon: 'home' },
+  ];
+
+  const getStepStatus = (stepKey) => {
+    const statusOrder = ['pending', 'confirmed', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered'];
+    const currentStatus = order?.status || 'pending';
+    
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    const stepIndex = statusOrder.indexOf(stepKey);
+
+    if (currentStatus === 'cancelled') return 'cancelled';
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'current';
+    return 'upcoming';
+  };
+
+  const getReassuringMessage = () => {
+    const status = order?.status;
+    switch (status) {
+      case 'pending':
+      case 'confirmed':
+        return "Your order is confirmed and will be processed soon.";
+      case 'processing':
+      case 'packed':
+        return "Great news! Your order is being packed and prepared for shipping.";
+      case 'shipped':
+        return "Your package is on its way! It has been handed over to our courier.";
+      case 'out_for_delivery':
+        return "Get ready! Your order is out for delivery and will reach you soon.";
+      case 'delivered':
+        return "Enjoy your purchase! Your order has been successfully delivered.";
+      case 'cancelled':
+        return "This order has been cancelled.";
+      default:
+        return "We're tracking your order carefully.";
     }
   };
 
-  const getStatusIcon = (status) => {
-    const statusMap = {
-      pending: 'time-outline',
-      confirmed: 'checkmark-circle-outline',
-      processing: 'build-outline',
-      packed: 'cube-outline',
-      shipped: 'airplane-outline',
-      delivered: 'checkmark-done-circle',
-      cancelled: 'close-circle-outline'
-    };
-    return statusMap[status] || 'ellipsis-horizontal-circle-outline';
-  };
-
-  const getStatusColor = (status) => {
-    const colorMap = {
-      pending: '#F59E0B',
-      confirmed: '#3B82F6',
-      processing: '#8B5CF6',
-      packed: '#10B981',
-      shipped: '#0EA5E9',
-      delivered: '#059669',
-      cancelled: '#EF4444'
-    };
-    return colorMap[status] || '#6B7280';
-  };
-
-  const getStatusSteps = () => {
-    return ['pending', 'confirmed', 'processing', 'packed', 'shipped', 'delivered'];
-  };
-
-  const currentStatusIndex = order ? getStatusSteps().indexOf(order.status) : -1;
-  const progressWidth = currentStatusIndex >= 0 ? ((currentStatusIndex + 1) / getStatusSteps().length) * 100 : 0;
-
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={styles.loadingText}>Loading tracking info...</Text>
+      <View style={styles.container}>
+        <CustomHeader title="Track Order" showBack={true} />
+        <View style={{ padding: 20 }}>
+          <Skeleton style={{ height: 120, borderRadius: 20, marginBottom: 20 }} />
+          <Skeleton style={{ height: 300, borderRadius: 20, marginBottom: 20 }} />
+          <Skeleton style={{ height: 150, borderRadius: 20 }} />
+        </View>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       <CustomHeader title="Track Order" showBack={true} />
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-          {/* Header Card with Gradient */}
+      
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4F46E5']} />
+        }
+      >
+        <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
+          
+          {/* Status Overview Card */}
           <LinearGradient
             colors={['#4F46E5', '#7C3AED']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.headerGradient}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            style={styles.headerCard}
           >
-            <View style={styles.headerContent}>
-              <View style={styles.orderHeader}>
-                <View>
-                  <Text style={styles.orderNo}>Order #{order.orderNo}</Text>
-                  <Text style={styles.orderDate}>
-                    {new Date(order.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </Text>
-                </View>
-                <View style={[styles.statusBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                  <Icon name={getStatusIcon(order.status)} size={16} color="#FFFFFF" />
-                  <Text style={[styles.statusText, { color: '#FFFFFF' }]}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Text>
-                </View>
+            <View style={styles.headerTop}>
+              <View>
+                <Text style={styles.orderLabel}>ORDER ID</Text>
+                <Text style={styles.orderIdText}>#{order.orderNo}</Text>
               </View>
-
-              {/* Progress Bar */}
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                  <Animated.View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${progressWidth}%`,
-                        backgroundColor: getStatusColor(order.status)
-                      }
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {Math.round(progressWidth)}% Complete
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusBadgeText}>
+                  {order.status.replace('_', ' ').toUpperCase()}
                 </Text>
               </View>
             </View>
+            <View style={styles.dividerLight} />
+            <Text style={styles.reassuringMessage}>{getReassuringMessage()}</Text>
           </LinearGradient>
 
-          {/* Tracking Details Card */}
-          <View style={styles.detailsCard}>
-            <Text style={styles.sectionTitle}>Tracking Details</Text>
+          {/* Progress Tracker */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Delivery Progress</Text>
+            <View style={styles.stepsContainer}>
+              {steps.map((step, index) => {
+                const status = getStepStatus(step.key);
+                const isLast = index === steps.length - 1;
 
-            {order.trackingNumber && (
-              <View style={styles.detailRow}>
-                <View style={styles.detailIcon}>
-                  <Icon name="qr-code-outline" size={24} color="#4F46E5" />
-                </View>
-                <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Tracking Number</Text>
-                  <Text style={styles.detailValue}>{order.trackingNumber}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.copyButton}
-                  onPress={() => {/* Copy to clipboard */ }}
-                >
-                  <Icon name="copy-outline" size={20} color="#6B7280" />
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {order.courierName && (
-              <View style={styles.detailRow}>
-                <View style={styles.detailIcon}>
-                  <Icon name="business-outline" size={24} color="#4F46E5" />
-                </View>
-                <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Courier Partner</Text>
-                  <Text style={styles.detailValue}>{order.courierName}</Text>
-                </View>
-              </View>
-            )}
-
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Icon name="location-outline" size={24} color="#4F46E5" />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Delivery Address</Text>
-                <Text style={styles.detailValue}>
-                  {order.shippingAddress?.street}, {order.shippingAddress?.city}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Enhanced Timeline */}
-          <View style={styles.timelineCard}>
-            <Text style={styles.sectionTitle}>Order Timeline</Text>
-
-            {order.trackingEvents && order.trackingEvents.length > 0 ? (
-              <View style={styles.timeline}>
-                {order.trackingEvents.map((event, index) => (
-                  <View key={index} style={styles.timelineEvent}>
-                    <View style={styles.timelineLeft}>
+                return (
+                  <View key={step.key} style={styles.stepWrapper}>
+                    <View style={styles.stepLeft}>
                       <View style={[
-                        styles.timelineDot,
-                        index === 0 && styles.timelineDotActive
+                        styles.stepIconContainer,
+                        status === 'completed' && styles.stepIconCompleted,
+                        status === 'current' && styles.stepIconCurrent,
                       ]}>
-                        <Icon
-                          name={index === 0 ? 'radio-button-on' : 'radio-button-off'}
-                          size={16}
-                          color={index === 0 ? '#4F46E5' : '#D1D5DB'}
+                        <Icon 
+                          name={status === 'completed' ? 'checkmark' : step.icon} 
+                          size={20} 
+                          color={status === 'upcoming' ? '#94A3B8' : '#FFF'} 
                         />
                       </View>
-                      {index !== order.trackingEvents.length - 1 && (
-                        <View style={styles.timelineConnector} />
+                      {!isLast && (
+                        <View style={[
+                          styles.stepLine,
+                          status === 'completed' && styles.stepLineCompleted
+                        ]} />
                       )}
                     </View>
-
-                    <View style={styles.timelineRight}>
-                      <View style={styles.eventHeader}>
-                        <Text style={styles.eventStatus}>{event.status}</Text>
-                        <Text style={styles.eventTime}>
-                          {new Date(event.timestamp).toLocaleString('en-US', {
+                    <View style={styles.stepRight}>
+                      <Text style={[
+                        styles.stepLabel,
+                        status === 'current' && styles.stepLabelCurrent,
+                        status === 'upcoming' && styles.stepLabelUpcoming
+                      ]}>
+                        {step.label}
+                      </Text>
+                      {status === 'current' && (
+                        <Text style={styles.stepSublabel}>Working on it...</Text>
+                      )}
+                      {order[`${step.key}At`] && (
+                        <Text style={styles.stepTime}>
+                          {new Date(order[`${step.key}At`]).toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
                         </Text>
-                      </View>
-                      <Text style={styles.eventDescription}>{event.description}</Text>
-                      {event.location && (
-                        <View style={styles.eventLocation}>
-                          <Icon name="location-outline" size={14} color="#6B7280" />
-                          <Text style={styles.eventLocationText}>{event.location}</Text>
-                        </View>
                       )}
                     </View>
                   </View>
-                ))}
-              </View>
-            ) : (
-              <View style={styles.noTracking}>
-                <View style={styles.noTrackingIcon}>
-                  <Icon name="information-circle-outline" size={48} color="#9CA3AF" />
-                </View>
-                <Text style={styles.noTrackingTitle}>No Tracking Updates Yet</Text>
-                <Text style={styles.noTrackingText}>
-                  Tracking information will appear once your order is shipped
-                </Text>
-              </View>
-            )}
+                );
+              })}
+            </View>
           </View>
 
-          {/* Action Buttons */}
-          <View style={styles.actionsCard}>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={fetchTracking}
-            >
-              <LinearGradient
-                colors={['#4F46E5', '#7C3AED']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.primaryButtonGradient}
-              >
-                <Icon name="refresh" size={20} color="#FFFFFF" />
-                <Text style={styles.primaryButtonText}>Refresh Status</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {order.trackingNumber && (
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => {
-                  const trackingUrl = `https://shiprocket.co/tracking/${order.trackingNumber}`;
-                  Linking.openURL(trackingUrl);
-                }}
-              >
-                <Icon name="open-outline" size={20} color="#4F46E5" />
-                <Text style={styles.secondaryButtonText}>Track on Website</Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={styles.outlineButton}
-              onPress={() => navigation.navigate('OrderDetails', { orderId })}
-            >
-              <Icon name="document-text-outline" size={20} color="#6B7280" />
-              <Text style={styles.outlineButtonText}>View Order Details</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Delivery Success Card */}
-          {order.status === 'delivered' && (
-            <View style={styles.deliveryCard}>
-              <LinearGradient
-                colors={['#10B981', '#059669']}
-                style={styles.deliveryGradient}
-              >
-                <View style={styles.deliveryContent}>
-                  <Icon name="checkmark-circle" size={48} color="#FFFFFF" />
-                  <Text style={styles.deliveryTitle}>Delivered Successfully!</Text>
-                  <Text style={styles.deliveryDate}>
-                    Delivered on {new Date(order.deliveredAt).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </Text>
-
-                  <TouchableOpacity
-                    style={styles.returnButton}
-                    onPress={() => navigation.navigate('InitiateReturn', { order })}
-                  >
-                    <Icon name="arrow-back-circle-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.returnButtonText}>Request Return</Text>
-                  </TouchableOpacity>
+          {/* Shipment Details */}
+          {(order.trackingNumber || order.courierName) && (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Courier Details</Text>
+              <View style={styles.row}>
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoLabel}>COURIER PARTNER</Text>
+                  <Text style={styles.infoValue}>{order.courierName || 'Pending'}</Text>
                 </View>
-              </LinearGradient>
+                <View style={[styles.infoBox, { alignItems: 'flex-end' }]}>
+                  <Text style={styles.infoLabel}>TRACKING ID</Text>
+                  <View style={styles.trackingIdRow}>
+                    <Text style={styles.infoValue}>{order.trackingNumber || 'N/A'}</Text>
+                    {order.trackingNumber && (
+                      <TouchableOpacity onPress={() => Linking.openURL(`https://shiprocket.co/tracking/${order.trackingNumber}`)}>
+                        <Icon name="copy-outline" size={16} color="#4F46E5" style={{ marginLeft: 6 }} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
             </View>
           )}
+
+          {/* Shipping Address */}
+          <View style={styles.card}>
+            <View style={styles.cardHeaderRow}>
+               <Icon name="location-sharp" size={20} color="#4F46E5" />
+               <Text style={[styles.cardTitle, { marginBottom: 0, marginLeft: 8 }]}>Shipping Address</Text>
+            </View>
+            <Text style={styles.addressText}>
+                {order.shippingAddress?.name}{"\n"}
+                {order.shippingAddress?.addressLine1}, {order.shippingAddress?.city}{"\n"}
+                {order.shippingAddress?.state} - {order.shippingAddress?.pincode}
+            </Text>
+          </View>
+
+          {/* Call to Actions */}
+          <View style={styles.footerActions}>
+            <TouchableOpacity 
+                style={styles.supportBtn}
+                onPress={() => navigation.navigate('OrderDetails', { orderId })}
+            >
+                <Icon name="document-text-outline" size={20} color="#4F46E5" />
+                <Text style={styles.supportBtnText}>View Full Invoice</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+                style={styles.supportBtn}
+                onPress={() => Linking.openURL('tel:919999999999')} // Replace with real support
+            >
+                <Icon name="headset-outline" size={20} color="#4F46E5" />
+                <Text style={styles.supportBtnText}>Contact Support</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ height: 40 }} />
         </Animated.View>
       </ScrollView>
     </View>
@@ -341,335 +291,196 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   content: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  headerGradient: {
-    margin: 16,
-    borderRadius: 16,
     padding: 20,
+  },
+  headerCard: {
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
     shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 10,
   },
-  headerContent: {
-    alignItems: 'center',
-  },
-  orderHeader: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-    marginBottom: 20,
-  },
-  orderNo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-  },
-  orderDate: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  statusBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  statusText: {
-    marginLeft: 6,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressContainer: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  progressBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
-    fontWeight: '500',
-  },
-  detailsCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E293B',
     marginBottom: 16,
   },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  detailIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  detailContent: {
-    flex: 1,
-  },
-  detailLabel: {
+  orderLabel: {
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
-    color: '#64748B',
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
-  detailValue: {
-    fontSize: 16,
-    color: '#1E293B',
+  orderIdText: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 4,
+  },
+  statusBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  statusBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  dividerLight: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginVertical: 16,
+  },
+  reassuringMessage: {
+    color: '#FFF',
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: '600',
   },
-  copyButton: {
-    padding: 8,
-  },
-  timelineCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 16,
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
     padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  timeline: {
-    marginTop: 8,
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 20,
   },
-  timelineEvent: {
+  stepsContainer: {
+    paddingLeft: 8,
+  },
+  stepWrapper: {
     flexDirection: 'row',
-    marginBottom: 24,
+    minHeight: 60,
   },
-  timelineLeft: {
+  stepLeft: {
     alignItems: 'center',
     marginRight: 16,
   },
-  timelineDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#E2E8F0',
+  stepIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 2,
   },
-  timelineDotActive: {
+  stepIconCompleted: {
+    backgroundColor: '#22C55E',
+  },
+  stepIconCurrent: {
     backgroundColor: '#4F46E5',
+    transform: [{ scale: 1.1 }],
   },
-  timelineConnector: {
+  stepLine: {
     width: 2,
-    height: 40,
-    backgroundColor: '#E2E8F0',
-    marginTop: 8,
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 4,
   },
-  timelineRight: {
+  stepLineCompleted: {
+    backgroundColor: '#22C55E',
+  },
+  stepRight: {
+    paddingBottom: 24,
     flex: 1,
   },
-  eventHeader: {
+  stepLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  stepLabelCurrent: {
+    color: '#4F46E5',
+  },
+  stepLabelUpcoming: {
+    color: '#94A3B8',
+  },
+  stepSublabel: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  stepTime: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 4,
+  },
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
   },
-  eventStatus: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  infoBox: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  infoValue: {
+    fontSize: 15,
     color: '#1E293B',
+    fontWeight: '700',
   },
-  eventTime: {
-    fontSize: 12,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  eventDescription: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  eventLocation: {
+  trackingIdRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  eventLocationText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginLeft: 4,
-  },
-  noTracking: {
+  cardHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 40,
-  },
-  noTrackingIcon: {
     marginBottom: 16,
   },
-  noTrackingTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 8,
-  },
-  noTrackingText: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  actionsCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  primaryButton: {
-    marginBottom: 12,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  primaryButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    backgroundColor: '#EEF2FF',
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  secondaryButtonText: {
-    color: '#4F46E5',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  outlineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-  },
-  outlineButtonText: {
+  addressText: {
+    fontSize: 15,
     color: '#475569',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    lineHeight: 24,
+    fontWeight: '500',
   },
-  deliveryCard: {
-    margin: 16,
-    marginTop: 0,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+  footerActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  deliveryGradient: {
-    padding: 24,
-  },
-  deliveryContent: {
-    alignItems: 'center',
-  },
-  deliveryTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  deliveryDate: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  returnButton: {
+  supportBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    justifyContent: 'center',
+    paddingVertical: 14,
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    gap: 8,
   },
-  returnButtonText: {
-    color: '#FFFFFF',
+  supportBtnText: {
     fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
+    fontWeight: '700',
+    color: '#4F46E5',
+  }
 });
 
 export default OrderTrackingScreen;

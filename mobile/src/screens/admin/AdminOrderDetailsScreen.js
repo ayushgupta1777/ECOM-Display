@@ -22,7 +22,7 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
   const fetchOrder = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(`/orders/${orderId}`);
+      const response = await api.get(`/admin/orders/${orderId}`);
       setOrder(response.data.data.order);
     } catch (error) {
       Alert.alert('Error', 'Failed to load order');
@@ -48,29 +48,8 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
     }
   };
 
-  const createShipment = async () => {
-    Alert.alert(
-      'Create Shipment',
-      'This will create a shipment in Shiprocket. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Create',
-          onPress: async () => {
-            try {
-              setIsProcessing(true);
-              await api.post(`/shiprocket/shipment/${orderId}`);
-              Alert.alert('Success', 'Shipment created successfully');
-              fetchOrder();
-            } catch (error) {
-              Alert.alert('Error', error.response?.data?.message || 'Failed to create shipment');
-            } finally {
-              setIsProcessing(false);
-            }
-          }
-        }
-      ]
-    );
+  const createShipment = () => {
+    navigation.navigate('CreateShipment', { orderId });
   };
 
   const generateLabel = async () => {

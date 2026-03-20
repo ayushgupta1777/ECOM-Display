@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, TextInput, Image, ScrollView
+  StyleSheet, ActivityIndicator, Alert, TextInput, Image, ScrollView, Modal
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -30,10 +30,9 @@ const AdminProductManagementScreen = ({ navigation }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/categories');
-      // Root categories don't have a parent
-      const rootCategories = response.data.data.filter(cat => !cat.parent);
-      setCategories(rootCategories);
+      const response = await api.get('/categories/tree');
+      // Root categories don't have a parent, tree returns them at top level
+      setCategories(response.data.data.categories);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -158,6 +157,22 @@ const AdminProductManagementScreen = ({ navigation }) => {
       ));
     } catch (error) {
       Alert.alert('Error', 'Failed to update product status');
+    }
+  };
+
+  const handleToggleFeatured = async (productId, currentFeatured) => {
+    try {
+      const response = await api.patch(`/admin/products/${productId}/featured`, {
+        isFeatured: !currentFeatured
+      });
+      
+      if (response.data.success) {
+        setProducts(prev => prev.map(p =>
+          p._id === productId ? { ...p, isFeatured: !currentFeatured } : p
+        ));
+      }
+    } catch (error) {
+      Alert.alert('Error', error.response?.data?.message || 'Failed to update featured status');
     }
   };
 
@@ -419,6 +434,20 @@ const AdminProductManagementScreen = ({ navigation }) => {
                     {product.isActive ? 'Active' : 'Inactive'}
                   </Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.featuredToggle, product.isFeatured && styles.featuredToggleActive]}
+                  onPress={() => handleToggleFeatured(product._id, product.isFeatured)}
+                >
+                  <Icon
+                    name={product.isFeatured ? 'star' : 'star-outline'}
+                    size={16}
+                    color={product.isFeatured ? '#fff' : '#4F46E5'}
+                  />
+                  <Text style={[styles.activeText, { color: product.isFeatured ? '#fff' : '#4F46E5' }]}>
+                    {product.isFeatured ? 'Featured' : 'Pin'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -663,6 +692,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: '#fff'
+  },
+  featuredToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#4F46E5'
+  },
+  featuredToggleActive: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B'
   },
   productActions: {
     justifyContent: 'space-between'

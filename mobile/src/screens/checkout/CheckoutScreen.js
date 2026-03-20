@@ -108,7 +108,7 @@ const CheckoutScreen = ({ navigation }) => {
   }, [items]);
 
   const shippingCost = totalPrice > 500 ? 0 : 50;
-  const tax = Math.round(totalPrice * 0.18);
+  const tax = Math.round(totalPrice * 0.03);
   const discount = appliedCoupon ? appliedCoupon.appliedDiscount : 0;
   const finalTotal = totalPrice + shippingCost + tax - discount;
 
@@ -455,7 +455,7 @@ const CheckoutScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Tax (18% GST)</Text>
+            <Text style={styles.priceLabel}>Tax (3% GST)</Text>
             <Text style={styles.priceValue}>₹{tax}</Text>
           </View>
 

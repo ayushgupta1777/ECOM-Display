@@ -57,14 +57,6 @@ const HomeScreen = ({ navigation }) => {
     ]).start();
   }, []);
 
-  // Fetch data on mount
-  useEffect(() => {
-    dispatch(fetchProducts());
-    fetchBanners();
-    fetchCategories();
-    fetchFeaturedProducts();
-    fetchNotificationCount();
-  }, []);
 
   const fetchBanners = async () => {
     try {
@@ -78,7 +70,11 @@ const HomeScreen = ({ navigation }) => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(response.data.data.categories);
+      // STRICT FILTER: Show only top-level categories (no parent)
+      const topLevelCategories = response.data.data.categories.filter(cat =>
+        !cat.parent || cat.parent === null
+      );
+      setCategories(topLevelCategories);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -153,7 +149,10 @@ const HomeScreen = ({ navigation }) => {
 
   const handleCategoryPress = (category) => {
     closeDrawer();
-    navigation.navigate('ProductList', { category });
+    navigation.navigate('SubcategoryList', {
+      categoryId: category._id,
+      categoryName: category.name
+    });
   };
 
   const handleMenuPress = (route) => {
@@ -250,9 +249,9 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.drawerSectionTitle}>CATEGORIES</Text>
               {categories.map((category) => (
                 <TouchableOpacity
-                  key={category.id}
+                  key={category._id}
                   style={styles.drawerCategoryItem}
-                  onPress={() => handleCategoryPress(category.category)}
+                  onPress={() => handleCategoryPress(category)}
                   activeOpacity={0.7}
                 >
                   <Image
@@ -455,7 +454,6 @@ const HomeScreen = ({ navigation }) => {
               )}
             </ScrollView>
           </View>
-
           <View style={styles.categoriesSection}>
             {categories.map((item) => (
               <TouchableOpacity
@@ -480,14 +478,13 @@ const HomeScreen = ({ navigation }) => {
                 )}
 
                 {/* Overlay Text */}
-
                 {/* <View style={styles.categoryOverlay}>
-                  <Text style={styles.categoryName}>{item.name}</Text>
+                  <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.categorySubtext}>Exclusive Collections</Text>
-                  <TouchableOpacity style={styles.exploreBtn}>
+                  <View style={styles.exploreBtn}>
                     <Text style={styles.exploreBtnText}>Explore More</Text>
-                  </TouchableOpacity>
-                </View>*/}
+                  </View>
+                </View> */}
 
                 {/* Play Button for Videos (Optional) */}
                 {item.hasVideo && (
