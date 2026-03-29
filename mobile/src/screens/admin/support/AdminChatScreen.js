@@ -10,6 +10,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   SafeAreaView,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { io } from 'socket.io-client';
@@ -36,6 +37,12 @@ const AdminChatScreen = ({ route, navigation }) => {
 
     socketRef.current.on('connect', () => {
       socketRef.current.emit('join', 'admin_room');
+    });
+
+    socketRef.current.on('chat_resolved', ({ chatId: resolvedChatId, message }) => {
+      if (resolvedChatId === chatId) {
+        setMessages((prev) => [...prev, message]);
+      }
     });
 
     socketRef.current.on('receive_message', (message) => {
@@ -76,6 +83,23 @@ const AdminChatScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleResolve = () => {
+    Alert.alert(
+      'Resolve Chat',
+      'Are you sure you want to mark this support session as resolved? This will notify the user.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Resolve', 
+          onPress: () => {
+            socketRef.current.emit('resolve_chat', { chatId });
+            Alert.alert('Success', 'Chat session resolved');
+          } 
+        }
+      ]
+    );
+  };
+
   const sendMessage = () => {
     if (inputText.trim() === '') return;
 
@@ -104,6 +128,14 @@ const AdminChatScreen = ({ route, navigation }) => {
   };
 
   const renderMessage = ({ item }) => {
+    if (item.messageType === 'system') {
+      return (
+        <View style={styles.systemMessageContainer}>
+          <Text style={styles.systemMessageText}>{item.text}</Text>
+        </View>
+      );
+    }
+
     const isMine = item.senderRole === 'admin';
     return (
       <View style={[styles.messageWrapper, isMine ? styles.myMessageWrapper : styles.otherMessageWrapper]}>
@@ -146,8 +178,12 @@ const AdminChatScreen = ({ route, navigation }) => {
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>{userName}</Text>
-          <Text style={styles.headerStatus}>Customer</Text>
+          <Text style={styles.headerStatus}>Customer Support</Text>
         </View>
+        <TouchableOpacity onPress={handleResolve} style={styles.resolveHeaderBtn}>
+           <Icon name="checkmark-done-circle-outline" size={24} color="#10B981" />
+           <Text style={styles.resolveHeaderText}>Resolve</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -320,6 +356,35 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#CBD5E1',
   },
+  resolveHeaderBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  resolveHeaderText: {
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  systemMessageContainer: {
+    alignSelf: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  systemMessageText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '600'
+  }
 });
 
 export default AdminChatScreen;

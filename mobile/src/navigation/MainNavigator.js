@@ -330,9 +330,42 @@ const ProfileStack = () => (
 //   </Stack.Navigator>
 // );
 
+import axios from 'axios';
+import { BASE_URL } from '../services/api';
+import UpgradeModal from '../components/common/UpgradeModal';
+
+// APP VERSION
+const CURRENT_VERSION = '0.0.4';
+
 // MAIN NAVIGATOR
 const MainNavigator = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
+  const [upgradeInfo, setUpgradeInfo] = React.useState({ visible: false, version: '', url: '' });
+
+  React.useEffect(() => {
+    checkAppVersion();
+  }, []);
+
+  const checkAppVersion = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/settings/latest_app_version`);
+      const serverVersion = response.data.data.value;
+
+      if (serverVersion && serverVersion !== CURRENT_VERSION) {
+        // Version mismatch, fetch update URL
+        const urlRes = await axios.get(`${BASE_URL}/api/settings/app_update_url`);
+        const updateUrl = urlRes.data.data.value;
+
+        setUpgradeInfo({
+          visible: true,
+          version: serverVersion,
+          url: updateUrl || ''
+        });
+      }
+    } catch (error) {
+      console.warn('App version check failed:', error.message);
+    }
+  };
   const isAdmin = user?.role === 'admin';
   const isReseller = user?.isReseller === true; // Customer who became reseller
 
@@ -414,6 +447,12 @@ const MainNavigator = () => {
         <Tab.Screen name="Orders" component={OrdersStack} />
         <Tab.Screen name="Profile" component={ProfileStack} />
       </Tab.Navigator>
+      <UpgradeModal
+        visible={upgradeInfo.visible}
+        version={upgradeInfo.version}
+        updateUrl={upgradeInfo.url}
+        onDismiss={() => setUpgradeInfo({ ...upgradeInfo, visible: false })}
+      />
     </Fragment>
   );
 };

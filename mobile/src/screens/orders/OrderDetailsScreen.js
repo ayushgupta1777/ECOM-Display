@@ -1218,15 +1218,15 @@ const EnhancedOrderDetailsScreen = ({ route, navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Price Details</Text>
           <View style={styles.priceRow}>
-            <Text>Subtotal</Text>
+            <Text style={styles.priceLabel}>Subtotal</Text>
             <Text>₹{order.subtotal}</Text>
           </View>
           <View style={styles.priceRow}>
-            <Text>Shipping</Text>
+            <Text style={styles.priceLabel}>Shipping</Text>
             <Text>{order.shipping === 0 ? 'FREE' : `₹${order.shipping}`}</Text>
           </View>
           <View style={styles.priceRow}>
-            <Text>Tax (3%)</Text>
+            <Text style={styles.priceLabel}>Tax (3%)</Text>
             <Text>₹{order.tax}</Text>
           </View>
           {order.coupon && order.coupon.code && (
@@ -1325,7 +1325,7 @@ const styles = StyleSheet.create({
   // Payment Info Styles
   paymentInfoCard: { backgroundColor: '#F9FAFB', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   paymentRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  paymentLabel: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
+  paymentLabel: { fontSize: 14, color: '#6B7280', fontWeight: '500', paddingRight: 4 },
   paymentValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
   amountText: { fontSize: 16, color: '#4F46E5' },
   paymentMethodBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EEF2FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
@@ -1379,6 +1379,7 @@ const styles = StyleSheet.create({
   addressText: { fontSize: 13, color: '#6B7280', marginTop: 2 },
   addressPhone: { fontSize: 12, color: '#9CA3AF', marginTop: 4 },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  priceLabel: { fontSize: 14, color: '#6B7280', paddingRight: 4 },
   divider: { height: 1, backgroundColor: '#E5E7EB', marginVertical: 8 },
   totalLabel: { fontWeight: '700', color: '#111827' },
   totalValue: { fontWeight: '700', color: '#4F46E5', fontSize: 16 },

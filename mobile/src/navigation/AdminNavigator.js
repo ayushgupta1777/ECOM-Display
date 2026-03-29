@@ -20,6 +20,7 @@ import CouponManagementScreen from '../screens/admin/CouponManagementScreen';
 import GeneralSettingsScreen from '../screens/admin/GeneralSettingsScreen';
 import AdminChatListScreen from '../screens/admin/support/AdminChatListScreen';
 import AdminChatScreen from '../screens/admin/support/AdminChatScreen';
+import ReleaseManagementScreen from '../screens/admin/ReleaseManagementScreen';
 import CreateShipmentScreen from '../screens/admin/CreateShipmentScreen';
 import OrderTrackingScreen from '../screens/orders/OrderTrackingScreen';
 
@@ -67,6 +68,7 @@ const SettingsStack = () => (
     <Stack.Screen name="AdminWithdrawals" component={AdminWithdrawalsScreen} />
     <Stack.Screen name="AdminResellerApplications" component={AdminResellerApplicationsScreen} />
     <Stack.Screen name="CouponManagement" component={CouponManagementScreen} />
+    <Stack.Screen name="ReleaseManagement" component={ReleaseManagementScreen} />
     <Stack.Screen name="OrdersDashboard" component={OrdersDashboardScreen} />
     <Stack.Screen name="AdminOrderDetails" component={AdminOrderDetailsScreen} />
     <Stack.Screen name="AddProduct" component={AddProductScreen} />

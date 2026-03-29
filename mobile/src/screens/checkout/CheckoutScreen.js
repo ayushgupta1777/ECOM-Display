@@ -831,14 +831,14 @@ const styles = StyleSheet.create({
   },
   paymentRadio: { marginRight: 12 },
   paymentDetails: { flex: 1 },
-  paymentLabel: { fontSize: 15, fontWeight: '600', color: '#111827' },
+  paymentLabel: { fontSize: 15, fontWeight: '600', color: '#111827', paddingRight: 4 },
   paymentDescription: { fontSize: 13, color: '#6B7280', marginTop: 2 },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10
   },
-  priceLabel: { fontSize: 14, color: '#6B7280' },
+  priceLabel: { fontSize: 14, color: '#6B7280', paddingRight: 4 },
   priceValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
   priceFree: { fontSize: 14, fontWeight: '700', color: '#10B981' },
   divider: {

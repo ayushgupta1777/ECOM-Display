@@ -99,6 +99,12 @@ const AdminProfileScreen = ({ navigation }) => {
           badge: 'Coming Soon'
         },
         {
+          icon: 'cloud-upload-outline',
+          label: 'Release Management',
+          screen: 'ReleaseManagement',
+          color: '#4F46E5',
+        },
+        {
           icon: 'chatbubbles-outline',
           label: 'Customer Support',
           screen: 'Support',

@@ -21,17 +21,21 @@ const OrdersDashboardScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [timeframe, setTimeframe] = useState('all');
 
   useEffect(() => {
     fetchOrders();
     fetchStats();
-  }, [filter]);
+  }, [filter, timeframe]);
 
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
       const response = await api.get('/admin/orders', {
-        params: { status: filter !== 'all' ? filter : undefined }
+        params: { 
+          status: filter !== 'all' ? filter : undefined,
+          timeframe: timeframe !== 'all' ? timeframe : undefined
+        }
       });
       setOrders(response.data.data.orders);
     } catch (error) {
@@ -43,7 +47,9 @@ const OrdersDashboardScreen = ({ navigation }) => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/admin/orders/stats');
+      const response = await api.get('/admin/orders/stats', {
+        params: { timeframe: timeframe !== 'all' ? timeframe : undefined }
+      });
       setStats(response.data.data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
@@ -92,6 +98,22 @@ const OrdersDashboardScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const TimeframeFilter = () => (
+    <View style={styles.timeframeContainer}>
+      {['all', 'today', 'week', 'month'].map((t) => (
+        <TouchableOpacity
+          key={t}
+          style={[styles.timeframeBtn, timeframe === t && styles.timeframeBtnActive]}
+          onPress={() => setTimeframe(t)}
+        >
+          <Text style={[styles.timeframeBtnText, timeframe === t && styles.timeframeBtnTextActive]}>
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
   const filteredOrders = orders.filter(order =>
     order.orderNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.user?.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -115,6 +137,9 @@ const OrdersDashboardScreen = ({ navigation }) => {
           <RefreshControl refreshing={isLoading} onRefresh={fetchOrders} />
         }
       >
+        {/* Timeframe Filter */}
+        <TimeframeFilter />
+
         {/* Stats Cards */}
         {stats && (
           <View style={styles.statsContainer}>
@@ -125,16 +150,16 @@ const OrdersDashboardScreen = ({ navigation }) => {
               color="#4F46E5"
             />
             <StatCard
-              icon="time-outline"
-              label="Pending"
-              value={stats.pendingOrders}
-              color="#F59E0B"
+              icon="cube-outline"
+              label="Packed"
+              value={stats.packedOrders}
+              color="#10B981"
             />
             <StatCard
               icon="checkmark-circle-outline"
               label="Delivered"
               value={stats.deliveredOrders}
-              color="#10B981"
+              color="#059669"
             />
             <StatCard
               icon="cash-outline"
@@ -163,7 +188,7 @@ const OrdersDashboardScreen = ({ navigation }) => {
           style={styles.filtersContainer}
         >
           <FilterChip label="All" value="all" count={stats?.totalOrders} />
-          <FilterChip label="Pending" value="pending" count={stats?.pendingOrders} />
+          <FilterChip label="Packed" value="packed" count={stats?.packedOrders} />
           <FilterChip label="Confirmed" value="confirmed" />
           <FilterChip label="Processing" value="processing" />
           <FilterChip label="Shipped" value="shipped" />
@@ -286,10 +311,38 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: '700', color: '#111827' },
   settingsBtn: { padding: 8 },
+  timeframeContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    margin: 16,
+    padding: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 4
+  },
+  timeframeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8
+  },
+  timeframeBtnActive: {
+    backgroundColor: '#4F46E5'
+  },
+  timeframeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6B7280'
+  },
+  timeframeBtnTextActive: {
+    color: '#fff'
+  },
   statsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 16,
+    paddingTop: 0,
     gap: 12
   },
   statCard: {

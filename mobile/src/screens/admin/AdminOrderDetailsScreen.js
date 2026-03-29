@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
     borderColor: '#4F46E5'
   },
-  timelineLabel: { fontSize: 14, color: '#6B7280' },
+  timelineLabel: { fontSize: 14, color: '#6B7280', paddingRight: 4 },
   timelineLabelActive: { color: '#4F46E5', fontWeight: '600' },
   timelineLine: {
     width: 2,
@@ -838,7 +838,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8
   },
-  priceLabel: { fontSize: 14, color: '#6B7280' },
+  priceLabel: { fontSize: 14, color: '#6B7280', paddingRight: 4 },
   priceValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
   divider: { height: 1, backgroundColor: '#E5E7EB', marginVertical: 8 },
   totalLabel: { fontSize: 16, fontWeight: '700', color: '#111827' },

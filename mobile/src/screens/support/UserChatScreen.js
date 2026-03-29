@@ -57,6 +57,17 @@ const UserChatScreen = ({ navigation, route }) => {
       );
     });
 
+    socketRef.current.on('messages_seen', ({ chatId }) => {
+      setMessages((prev) =>
+        prev.map((m) => (m.chatId === chatId ? { ...m, status: 'seen' } : m))
+      );
+    });
+
+    socketRef.current.on('chat_resolved', ({ chatId, message }) => {
+      setMessages((prev) => [...prev, message]);
+      setChat((prev) => prev && prev._id === chatId ? { ...prev, status: 'resolved' } : prev);
+    });
+
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -88,16 +99,9 @@ const UserChatScreen = ({ navigation, route }) => {
       // If coming from "Raise Issue", send automated message if not already sent
       if (orderId && orderNo) {
         const automatedText = `I need help with Order #${orderNo}`;
-        // Check if this message was already sent recently to avoid duplicates on refresh
         const exists = msgRes.data.messages.some(m => m.text === automatedText && m.orderId === orderId);
         if (!exists) {
-          socketRef.current?.emit('send_message', {
-            chatId: currentChat._id,
-            senderId: user?.id || user?._id,
-            senderRole: 'user',
-            text: automatedText,
-            orderId: orderId
-          });
+          sendMessage(automatedText, orderId);
         }
       }
     } catch (error) {
@@ -106,34 +110,65 @@ const UserChatScreen = ({ navigation, route }) => {
     }
   };
 
-  const sendMessage = () => {
-    if (inputText.trim() === '' || !chat) return;
+  const sendMessage = (text = inputText, customOrderId = null) => {
+    const finalMsg = text?.trim() || (typeof text === 'string' ? text : inputText.trim());
+    if (finalMsg === '' || !chat) return;
 
     const messageData = {
       chatId: chat._id,
       senderId: user?.id || user?._id,
       senderRole: 'user',
-      text: inputText.trim(),
+      text: finalMsg,
+      orderId: customOrderId || orderId
     };
 
     socketRef.current.emit('send_message', messageData);
-    setInputText('');
+    if (!text || text === inputText) setInputText('');
   };
 
-  const renderOrderReference = (itemOrderId) => {
-    if (!itemOrderId) return null;
+  const QuickReplies = () => {
+    const topics = [
+      { id: 1, text: 'Order Status', icon: 'location-outline' },
+      { id: 2, text: 'Return Policy', icon: 'return-up-back-outline' },
+      { id: 3, text: 'Refund Inquiry', icon: 'card-outline' },
+      { id: 4, text: 'Talk to Agent', icon: 'headset-outline' },
+    ];
+
+    if (chat?.status === 'resolved') return null;
+
     return (
-      <TouchableOpacity 
-        style={styles.orderRefBadge}
-        onPress={() => navigation.navigate('OrderDetails', { orderId: itemOrderId })}
-      >
-        <Icon name="receipt-outline" size={12} color="#4F46E5" />
-        <Text style={styles.orderRefText}>View Order</Text>
-      </TouchableOpacity>
+      <View style={styles.quickRepliesContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={topics}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.quickReplyBtn}
+              onPress={() => sendMessage(item.text)}
+            >
+              <Icon name={item.icon} size={16} color="#4F46E5" />
+              <Text style={styles.quickReplyText}>{item.text}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+        />
+      </View>
     );
   };
 
   const renderMessage = ({ item }) => {
+    if (item.messageType === 'system') {
+      return (
+        <View style={styles.systemMessageContainer}>
+          <View style={styles.systemMessageLine} />
+          <Text style={styles.systemMessageText}>{item.text}</Text>
+          <View style={styles.systemMessageLine} />
+        </View>
+      );
+    }
+
     const isMine = item.senderRole === 'user';
     return (
       <View style={[styles.messageWrapper, isMine ? styles.myMessageWrapper : styles.otherMessageWrapper]}>
@@ -146,9 +181,17 @@ const UserChatScreen = ({ navigation, route }) => {
           <Text style={[styles.messageText, isMine ? styles.myMessageText : styles.otherMessageText]}>
             {item.text}
           </Text>
-          {renderOrderReference(item.orderId)}
+          {item.orderId && (
+            <TouchableOpacity 
+              style={styles.orderRefBadge}
+              onPress={() => navigation.navigate('OrderDetails', { orderId: item.orderId })}
+            >
+              <Icon name="receipt-outline" size={12} color="#4F46E5" />
+              <Text style={styles.orderRefText}>View Order</Text>
+            </TouchableOpacity>
+          )}
           <View style={styles.messageFooter}>
-            <Text style={styles.timeText}>
+            <Text style={[styles.timeText, isMine && styles.myTimeText]}>
               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
             {isMine && (
@@ -181,11 +224,8 @@ const UserChatScreen = ({ navigation, route }) => {
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Customer Support</Text>
-          <Text style={styles.headerStatus}>Online</Text>
+          <Text style={styles.headerStatus}>{chat?.status === 'resolved' ? 'Session Resolved' : 'Online'}</Text>
         </View>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Icon name="information-circle-outline" size={24} color="#FFF" />
-        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -197,31 +237,41 @@ const UserChatScreen = ({ navigation, route }) => {
         onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-        style={styles.inputWrapper}
-      >
-        <View style={styles.inputContainer}>
-          <TouchableOpacity style={styles.attachButton}>
-            <Icon name="add" size={24} color="#64748B" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="Type a message..."
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-          />
+      {chat?.status === 'active' || !chat?.status ? (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          style={styles.inputWrapper}
+        >
+          <QuickReplies />
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Type a message..."
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+            />
+            <TouchableOpacity 
+              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]} 
+              onPress={() => sendMessage()}
+              disabled={!inputText.trim()}
+            >
+              <Icon name="send" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={styles.resolvedFooter}>
+          <Text style={styles.resolvedText}>This support session has ended.</Text>
           <TouchableOpacity 
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]} 
-            onPress={sendMessage}
-            disabled={!inputText.trim()}
+            style={styles.newChatBtn}
+            onPress={() => setChat({ ...chat, status: 'active' })}
           >
-            <Icon name="send" size={20} color="#FFF" />
+            <Text style={styles.newChatBtnText}>Start New Conversation</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 };
@@ -385,6 +435,68 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#CBD5E1',
   },
+  quickRepliesContainer: {
+    paddingVertical: 10,
+  },
+  quickReplyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 6
+  },
+  quickReplyText: {
+    fontSize: 13,
+    color: '#4F46E5',
+    fontWeight: '600'
+  },
+  systemMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    paddingHorizontal: 20
+  },
+  systemMessageLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E8F0'
+  },
+  systemMessageText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginHorizontal: 10,
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+  resolvedFooter: {
+    padding: 24,
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0'
+  },
+  resolvedText: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+    textAlign: 'center'
+  },
+  newChatBtn: {
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8
+  },
+  newChatBtnText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700'
+  }
 });
 
 export default UserChatScreen;
