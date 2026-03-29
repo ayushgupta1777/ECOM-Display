@@ -209,28 +209,48 @@ const CheckoutScreen = ({ navigation }) => {
       console.log('Creating order with data:', orderData);
 
       const result = await dispatch(createOrder(orderData)).unwrap();
+      // CRITICAL FIX: Ensure modal is fully closed before navigation starts
+      // This prevents the "rough out/crash" issue in many React Native setups
+      setTimeout(async () => {
+        try {
+          // Serialize order for navigation to avoid any cyclic reference crashes
+          const navigationOrder = {
+             _id: result._id,
+             orderNo: result.orderNo,
+             total: result.total,
+             paymentMethod: result.paymentMethod,
+             shippingAddress: {
+                city: result.shippingAddress?.city,
+                state: result.shippingAddress?.state
+             }
+          };
 
-      console.log('Order created successfully:', result);
-
-      // CRITICAL FIX: Wait for state to update
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      if (paymentMethod === 'cod') {
-        // Navigate to OrderSuccess (in Cart stack)
-        navigation.replace('OrderSuccess', { order: result });
-      } else {
-        // Navigate to PaymentGateway (in Cart stack)
-        navigation.replace('PaymentGateway', { order: result });
-      }
+          if (paymentMethod === 'cod') {
+            console.log('Navigating to OrderSuccess (COD)...');
+            navigation.replace('OrderSuccess', { order: navigationOrder });
+          } else {
+            console.log('Navigating to PaymentGateway (Online)...');
+            navigation.navigate('PaymentGateway', { 
+              order: navigationOrder,
+              amount: result.total 
+            });
+          }
+        } catch (navError) {
+          console.error('Safe Navigation Failed:', navError);
+          setIsProcessing(false);
+          Alert.alert("Navigation Error", "Order placed but could not show success page. Please check your orders list.");
+        }
+      }, 500);
 
     } catch (error) {
+
       console.error('Order creation failed:', error);
       setIsProcessing(false);
       Alert.alert(
         'Order Failed',
-        error?.message || 'Failed to place order. Please try again.',
+        error?.message || 'Failed to place order. Something went wrong. Please check your internet or try again.',
         [
-          { text: 'OK' }
+          { text: 'Try Again' }
         ]
       );
     }

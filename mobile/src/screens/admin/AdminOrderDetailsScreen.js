@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert, Modal, Image
+  StyleSheet, ActivityIndicator, Alert, Modal, Image, Linking, Platform
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api, { getImageUrl } from '../../services/api';
@@ -56,24 +56,78 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
     try {
       setIsProcessing(true);
       const response = await api.get(`/shiprocket/label/${orderId}`);
-      Alert.alert(
-        'Label Generated',
-        'Shipping label has been generated',
-        [
-          {
-            text: 'View',
-            onPress: () => {
-              // Open label URL
-            }
-          },
-          { text: 'OK' }
-        ]
-      );
+      const labelUrl = response.data.data.labelUrl;
+
+      if (!labelUrl) {
+        throw new Error('Label URL not found in response');
+      }
+
+      openDocument(labelUrl);
     } catch (error) {
-      Alert.alert('Error', 'Failed to generate label');
+      console.error('Label generation error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to generate label');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const generateInvoice = async () => {
+    try {
+      setIsProcessing(true);
+      const response = await api.get(`/shiprocket/invoice/${orderId}`);
+      const invoiceUrl = response.data.data.invoiceUrl;
+
+      if (!invoiceUrl) {
+        throw new Error('Invoice URL not found in response');
+      }
+
+      openDocument(invoiceUrl);
+    } catch (error) {
+      console.error('Invoice generation error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to generate invoice');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const generatePackingSlip = async () => {
+    try {
+      setIsProcessing(true);
+      const response = await api.get(`/shiprocket/packing-slip/${orderId}`);
+      const packingSlipUrl = response.data.data.packingSlipUrl;
+
+      if (!packingSlipUrl) {
+        throw new Error('Packing slip URL not found in response');
+      }
+
+      openDocument(packingSlipUrl);
+    } catch (error) {
+      console.error('Packing slip generation error:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to generate packing slip');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const generatePremiumPickList = async () => {
+    const pickListUrl = `https://newrajfancystore.adsngrow.in/api/shiprocket/pick-list/${orderId}`;
+    Linking.openURL(pickListUrl).catch(err => {
+      console.error("Failed to open URL:", err);
+      Alert.alert("Error", "Could not open Premium Pick List");
+    });
+  };
+
+  const openDocument = (url) => {
+    // CRITICAL FIX: Android often opens PDFs as raw text. 
+    // We use Google Docs Viewer as a proxy to ensure it renders correctly on mobile.
+    const finalUrl = Platform.OS === 'android' 
+      ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}`
+      : url;
+
+    Linking.openURL(finalUrl).catch(err => {
+      console.error("Failed to open URL:", err);
+      Alert.alert("Error", "Could not open document. Please try a different browser.");
+    });
   };
 
   const schedulePickup = async () => {
@@ -91,7 +145,7 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
               Alert.alert('Success', 'Pickup scheduled successfully');
               fetchOrder();
             } catch (error) {
-              Alert.alert('Error', 'Failed to schedule pickup');
+              Alert.alert('Error', error.response?.data?.message || 'Failed to schedule pickup');
             } finally {
               setIsProcessing(false);
             }
@@ -104,12 +158,12 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
   const trackShipment = async () => {
     try {
       setIsProcessing(true);
-      const response = await api.get(`/shiprocket/track/${orderId}`);
-      navigation.navigate('ShipmentTracking', {
-        trackingData: response.data.data.tracking
+      // We navigate to OrderTracking screen which is common for user and admin
+      navigation.navigate('OrderTracking', {
+        orderId: orderId
       });
     } catch (error) {
-      Alert.alert('Error', 'Failed to fetch tracking');
+      Alert.alert('Error', 'Failed to open tracking');
     } finally {
       setIsProcessing(false);
     }
@@ -271,44 +325,77 @@ const AdminOrderDetailsScreen = ({ route, navigation }) => {
                 </View>
 
                 {/* Actions Grid */}
-                <View style={styles.actionsGrid}>
-                  <TouchableOpacity
-                    style={styles.gridAction}
-                    onPress={generateLabel}
-                    disabled={isProcessing}
-                  >
-                    <Icon name="document-text-outline" size={28} color="#4F46E5" />
-                    <Text style={styles.gridActionText}>Generate Label</Text>
-                  </TouchableOpacity>
+                <View style={styles.actionsSection}>
+                  <Text style={styles.subSectionTitle}>Documents (Printable)</Text>
+                  <View style={styles.actionsGrid}>
+                    <TouchableOpacity
+                      style={styles.gridAction}
+                      onPress={generateLabel}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="barcode-outline" size={28} color="#4F46E5" />
+                      <Text style={styles.gridActionText}>Label</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.gridAction}
-                    onPress={schedulePickup}
-                    disabled={isProcessing}
-                  >
-                    <Icon name="calendar-outline" size={28} color="#10B981" />
-                    <Text style={styles.gridActionText}>Schedule Pickup</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.gridAction}
+                      onPress={generateInvoice}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="receipt-outline" size={28} color="#4F46E5" />
+                      <Text style={styles.gridActionText}>Invoice</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={styles.gridAction}
-                    onPress={trackShipment}
-                    disabled={isProcessing}
-                  >
-                    <Icon name="navigate-outline" size={28} color="#F59E0B" />
-                    <Text style={styles.gridActionText}>Track</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.gridAction}
+                      onPress={generatePackingSlip}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="list-outline" size={28} color="#4F46E5" />
+                      <Text style={styles.gridActionText}>Packing Slip</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={[styles.gridAction, styles.gridActionDanger]}
-                    onPress={cancelShipment}
-                    disabled={isProcessing}
-                  >
-                    <Icon name="close-circle-outline" size={28} color="#EF4444" />
-                    <Text style={[styles.gridActionText, { color: '#EF4444' }]}>
-                      Cancel
-                    </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.gridAction, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}
+                      onPress={generatePremiumPickList}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="star" size={28} color="#16A34A" />
+                      <Text style={[styles.gridActionText, { color: '#16A34A' }]}>Premium Pick-List</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={styles.subSectionTitle}>Logistics & Tracking</Text>
+                  <View style={styles.actionsGrid}>
+                    <TouchableOpacity
+                      style={styles.gridAction}
+                      onPress={schedulePickup}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="calendar-outline" size={28} color="#10B981" />
+                      <Text style={styles.gridActionText}>Schedule Pickup</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.gridAction}
+                      onPress={trackShipment}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="navigate-outline" size={28} color="#F59E0B" />
+                      <Text style={styles.gridActionText}>Track Order</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.gridAction, styles.gridActionDanger]}
+                      onPress={cancelShipment}
+                      disabled={isProcessing}
+                    >
+                      <Icon name="close-circle-outline" size={28} color="#EF4444" />
+                      <Text style={[styles.gridActionText, { color: '#EF4444' }]}>
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </>
             )}
@@ -617,26 +704,38 @@ const styles = StyleSheet.create({
   },
   shipmentLabel: { fontSize: 14, color: '#6B7280' },
   shipmentValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  actionsSection: {
+    gap: 12
+  },
+  subSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 4
+  },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12
+    gap: 8
   },
   gridAction: {
     flex: 1,
-    minWidth: '47%',
+    minWidth: '30%',
     backgroundColor: '#F9FAFB',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB'
   },
   gridActionDanger: {
     borderColor: '#FEE2E2'
   },
-  gridActionText: { fontSize: 13, fontWeight: '600', color: '#111827' },
+  gridActionText: { fontSize: 11, fontWeight: '700', color: '#111827', textAlign: 'center' },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

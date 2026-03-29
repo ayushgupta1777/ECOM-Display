@@ -21,6 +21,7 @@ import GeneralSettingsScreen from '../screens/admin/GeneralSettingsScreen';
 import AdminChatListScreen from '../screens/admin/support/AdminChatListScreen';
 import AdminChatScreen from '../screens/admin/support/AdminChatScreen';
 import CreateShipmentScreen from '../screens/admin/CreateShipmentScreen';
+import OrderTrackingScreen from '../screens/orders/OrderTrackingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -32,6 +33,7 @@ const OrdersStack = () => (
     <Stack.Screen name="AdminOrderDetails" component={AdminOrderDetailsScreen} />
     <Stack.Screen name="AdminChat" component={AdminChatScreen} />
     <Stack.Screen name="CreateShipment" component={CreateShipmentScreen} />
+    <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
   </Stack.Navigator>
 );
 

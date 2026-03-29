@@ -403,6 +403,35 @@ const ShiprocketSettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Webhook Configuration Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Live Status Updates (Webhook)</Text>
+          <Text style={styles.sectionSubtitle}>
+            To enable live status updates from Shiprocket, copy the URL below and paste it into your Shiprocket Dashboard → Settings → Webhooks.
+          </Text>
+          
+          <View style={styles.webhookBox}>
+            <Text style={styles.webhookUrlLabel}>WEBHOOK URL:</Text>
+            <View style={styles.webhookUrlContainer}>
+              <Text style={styles.webhookUrlText}>
+                https://newrajfancystore.adsngrow.in/api/webhooks/shiprocket
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                   // Optional: Add clipboard support
+                   Alert.alert("Webhook URL", "https://newrajfancystore.adsngrow.in/api/webhooks/shiprocket");
+                }}
+              >
+                <Icon name="copy-outline" size={20} color="#4F46E5" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <Text style={styles.webhookNote}>
+            Events to subscribe to: <Text style={{fontWeight: '700'}}>Shipment Status Update</Text>, <Text style={{fontWeight: '700'}}>Delivery Update</Text>.
+          </Text>
+        </View>
+
         {/* Documentation Link */}
         <View style={styles.section}>
           <View style={styles.infoBox}>
@@ -658,6 +687,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#4F46E5'
+  },
+  webhookBox: {
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginTop: 8
+  },
+  webhookUrlLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6B7280',
+    marginBottom: 8,
+    letterSpacing: 0.5
+  },
+  webhookUrlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12
+  },
+  webhookUrlText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1E293B',
+    fontWeight: '600',
+    fontFamily: 'monospace'
+  },
+  webhookNote: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 12,
+    fontStyle: 'italic',
+    lineHeight: 18
   }
 });
 
